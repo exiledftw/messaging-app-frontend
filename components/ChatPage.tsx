@@ -18,10 +18,28 @@ export default function ChatPage({ user, room, onBackClick }: any) {
 
   if (!room) {
     return (
-  <div className="min-h-screen bg-linear-to-br from-navy-950 via-navy-900 to-navy-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-white text-3xl font-bold mb-4">Room not found</h1>
-          <button onClick={onBackClick} className="bg-white text-navy-950 px-6 py-2 rounded-lg hover:bg-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950 flex items-center justify-center relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative z-10 text-center p-8">
+          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-pink-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10">
+            <svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+            </svg>
+          </div>
+          <h1 className="text-white text-3xl font-bold mb-3">Room not found</h1>
+          <p className="text-white/50 mb-6">This room may have been deleted or doesn't exist.</p>
+          <button 
+            onClick={onBackClick} 
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 via-purple-500 to-violet-600 text-white font-bold px-8 py-3 rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 transition-all duration-200"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
             Back to Rooms
           </button>
         </div>
@@ -98,7 +116,14 @@ export default function ChatPage({ user, room, onBackClick }: any) {
   // mapServerMessage is now imported from lib/api-service
 
   return (
-  <div className="min-h-screen bg-linear-to-br from-navy-950 via-navy-900 to-navy-950 flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950 flex flex-col relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl"></div>
+      </div>
+      
       <ChatHeader room={room} user={user} onBackClick={onBackClick} />
       <ChatMessages messages={messages} user={user} />
       <ChatInput onSendMessage={handleSendMessage} />

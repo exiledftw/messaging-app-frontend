@@ -23,7 +23,7 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [isLogin, setIsLogin] = useState(false)
+  const [isLogin, setIsLogin] = useState(true) // Start with login mode
 
   const getInitials = (first: string, last: string) => {
     return `${first.charAt(0).toUpperCase()}${last.charAt(0).toUpperCase()}`
@@ -42,13 +42,15 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
       if (isLogin) {
         const logged = await authService.login(username.trim(), password)
         if (logged) {
+          const userFirstName = logged.first_name || firstName.trim() || ''
+          const userLastName = logged.last_name || lastName.trim() || ''
           const userData = {
             id: logged.id,
             username: logged.username,
             password: password,
-            firstName: logged.first_name || firstName.trim(),
-            lastName: logged.last_name || lastName.trim(),
-            initials: getInitials(firstName, lastName),
+            firstName: userFirstName,
+            lastName: userLastName,
+            initials: getInitials(userFirstName, userLastName) || username.charAt(0).toUpperCase(),
             joinedAt: new Date().toISOString(),
           }
           onUserSet(userData)
@@ -89,6 +91,11 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
         setIsLogin(true)
         return
       }
+      // For login errors, show a friendly message
+      if (isLogin) {
+        setError("Invalid username or password. Try again or register a new account.")
+        return
+      }
       // generic fallback behavior
       const userData = {
         id: Date.now().toString(),
@@ -103,101 +110,155 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-navy-950">{isLogin ? "Sign in" : "Welcome to Chatter"}</h2>
-          <p className="text-gray-600 mt-2">{isLogin ? "Enter your credentials to sign in" : "Let's set up your profile"}</p>
-        </div>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="relative bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950 rounded-3xl shadow-2xl shadow-purple-500/30 max-w-md w-full overflow-hidden animate-scale-in">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-500/20 rounded-full blur-3xl"></div>
+        
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={() => onClose()}
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all duration-200 z-20 cursor-pointer"
+          aria-label="Close"
+        >
+          <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-navy-950 mb-2">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="your-username"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-950 focus:border-transparent"
-              autoComplete="username"
-            />
+        <div className="relative z-10 p-8 space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 rounded-2xl shadow-lg shadow-purple-500/40 mb-4">
+              <span className="text-white font-black text-2xl">Y</span>
+            </div>
+            <h2 className="text-2xl font-bold text-white">{isLogin ? "Welcome back!" : "Join Yapper"}</h2>
+            <p className="text-white/60 text-sm">{isLogin ? "Sign in to continue your conversations" : "Create your account to get started"}</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-navy-950 mb-2">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Choose a password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-950 focus:border-transparent"
-              autoComplete="new-password"
-            />
-          </div>
-          <div className={isLogin ? 'hidden' : ''}>
-            <label className="block text-sm font-semibold text-navy-950 mb-2">First Name</label>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="John"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-950 focus:border-transparent"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+                autoComplete="username"
+              />
+            </div>
 
-          <div className={isLogin ? 'hidden' : ''}>
-            <label className="block text-sm font-semibold text-navy-950 mb-2">Last Name</label>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Doe"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-950 focus:border-transparent"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={isLogin ? "Enter your password" : "Create a password"}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+                autoComplete={isLogin ? "current-password" : "new-password"}
+              />
+            </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <div className="text-xs text-gray-500">
-            {isLogin ? (
-              <p>
-                Don't have an account?{' '}
-                <button type="button" className="text-blue-600 underline" onClick={() => { setIsLogin(false); setError("") }}>
-                  Register
-                </button>
-              </p>
-            ) : (
-              <p>
-                Already have an account?{' '}
-                <button type="button" className="text-blue-600 underline" onClick={() => { setIsLogin(true); setError("") }}>
-                  Login
-                </button>
-              </p>
-            )}
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-xs text-gray-600 mb-2">Your profile will look like:</p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-navy-950 to-navy-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                {firstName && lastName ? getInitials(firstName, lastName) : "JD"}
+            {!isLogin && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="John"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Doe"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+                  />
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-navy-950">
-                  {firstName || "John"} {lastName || "Doe"}
+            )}
+
+            {error && (
+              <div className="flex items-center gap-2 px-4 py-3 bg-red-500/20 border border-red-500/30 rounded-xl">
+                <svg className="w-5 h-5 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-violet-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              {isLogin ? 'Sign in' : 'Create Account'}
+            </button>
+
+            <div className="text-center pt-2">
+              {isLogin ? (
+                <p className="text-white/60 text-sm">
+                  Don't have an account?{' '}
+                  <button type="button" className="text-pink-400 hover:text-pink-300 font-semibold transition-colors" onClick={() => { setIsLogin(false); setError("") }}>
+                    Register
+                  </button>
                 </p>
-                <p className="text-xs text-gray-500">Member</p>
+              ) : (
+                <p className="text-white/60 text-sm">
+                  Already have an account?{' '}
+                  <button type="button" className="text-pink-400 hover:text-pink-300 font-semibold transition-colors" onClick={() => { setIsLogin(true); setError("") }}>
+                    Sign in
+                  </button>
+                </p>
+              )}
+            </div>
+          </form>
+
+          {/* Profile preview for registration */}
+          {!isLogin && (firstName || lastName) && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+              <p className="text-xs text-white/50 mb-3">Profile preview</p>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-violet-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                  {firstName && lastName ? getInitials(firstName, lastName) : "?"}
+                </div>
+                <div>
+                  <p className="font-semibold text-white">
+                    {firstName || "Your"} {lastName || "Name"}
+                  </p>
+                  <p className="text-xs text-white/50">@{username || "username"}</p>
+                </div>
               </div>
             </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-navy-950 text-white font-semibold py-2 rounded-lg hover:bg-navy-800 transition-colors"
-          >
-            {isLogin ? 'Sign in' : 'Continue'}
-          </button>
-        </form>
+          )}
+        </div>
       </div>
+      
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out forwards;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   )
 }

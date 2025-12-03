@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8001/api"
+const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE || "ws://localhost:8001"
 
 const handleApiError = (error: any) => {
   console.error("API Error:", error)

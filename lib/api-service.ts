@@ -129,13 +129,12 @@ export const messageService = {
 
 // WebSocket helper for real-time messaging
 export const createWebSocketConnection = (roomId: string, onMessageReceived: (data: any) => void) => {
-  const envWs = process.env.NEXT_PUBLIC_WS_URL
-  const apiBase = API_BASE_URL.replace(/\/$/, "")
-  let wsBase = envWs ? envWs.replace(/\/$/, "") : apiBase.replace(/\/api$/, "")
-  if (!envWs) {
-    if (wsBase.startsWith("https://")) wsBase = wsBase.replace(/^https:/, "wss:")
-    else if (wsBase.startsWith("http://")) wsBase = wsBase.replace(/^http:/, "ws:")
-  }
+  // Use WS_BASE_URL that we defined at the top of the file
+  let wsBase = WS_BASE_URL.replace(/\/$/, "")
+  
+  // Convert http/https to ws/wss
+  if (wsBase.startsWith("https://")) wsBase = wsBase.replace(/^https:/, "wss:")
+  else if (wsBase.startsWith("http://")) wsBase = wsBase.replace(/^http:/, "ws:")
 
   const wsUrl = `${wsBase}/ws/chat/${roomId}/`
   console.info("WebSocket connecting to:", wsUrl)
@@ -144,6 +143,7 @@ export const createWebSocketConnection = (roomId: string, onMessageReceived: (da
   socket.onmessage = (event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data)
+      console.log("WebSocket message received:", data)
       onMessageReceived(data)
     } catch (e) {
       console.error("Invalid WS message", e)

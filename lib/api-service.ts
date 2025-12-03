@@ -63,12 +63,17 @@ export const roomService = {
 
   joinRoom: async (roomKey: string, userId: string) => {
     try {
+      console.log('Joining room with key:', roomKey, 'userId:', userId)
       const response = await fetch(`${API_BASE_URL}/rooms/join/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ room_key: roomKey, user_id: userId }),
       })
-      if (!response.ok) throw new Error("Failed to join room")
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }))
+        console.error('Join room failed:', response.status, errorData)
+        throw new Error(errorData.detail || "Failed to join room")
+      }
       return await response.json()
     } catch (error) {
       handleApiError(error)

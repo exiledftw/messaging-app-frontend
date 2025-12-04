@@ -72,25 +72,27 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     }
   }
 
-  useEffect(() => {
-    // load initial messages for room
-    const load = async () => {
-      if (!room) return
-      try {
-        const fetched = await messageService.getMessages(room.id)
-        if (Array.isArray(fetched))
-          setMessages(
-            fetched.map((m: any) => {
-              const msg = mapServerMessage(m)
-                  msg.isMine = msg.sender?.id === userFullName
-              return msg
-            })
-          )
-      } catch (e) {
-        console.error("Could not load messages", e)
-      }
+  // Function to load messages (used for initial load and refresh)
+  const loadMessages = async () => {
+    if (!room) return
+    try {
+      const fetched = await messageService.getMessages(room.id)
+      if (Array.isArray(fetched))
+        setMessages(
+          fetched.map((m: any) => {
+            const msg = mapServerMessage(m)
+            msg.isMine = msg.sender?.id === userFullName
+            return msg
+          })
+        )
+    } catch (e) {
+      console.error("Could not load messages", e)
     }
-    load()
+  }
+
+  useEffect(() => {
+    // Initial load
+    loadMessages()
 
     // connect websocket for live messages
     if (room) {
@@ -112,7 +114,18 @@ export default function ChatPage({ user, room, onBackClick }: any) {
       }
     }
 
+    // Handle visibility change - reconnect WS and refresh messages when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && room) {
+        console.log('Tab visible - refreshing messages and reconnecting WS')
+        loadMessages() // Refresh messages in case we missed any
+        socketRef.current?.reconnect?.() // Reconnect WebSocket
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       try {
         socketRef.current?.close()
       } catch (e) {

@@ -55,7 +55,7 @@ export default function ChatMessages({ messages, user }: { messages: any[]; user
           <>
             {messages.map((msg: any, idx: number) => (
               <div 
-                key={idx} 
+                key={msg.id || `msg-${idx}`} 
                 className={`flex gap-2 sm:gap-3 ${msg.isMine ? "flex-row-reverse" : ""} animate-fade-in-up`}
                 style={{ animationDelay: `${Math.min(idx * 50, 500)}ms` }}
               >

@@ -47,13 +47,13 @@ export default function ChatHeader({ room, user, onBackClick }: Props) {
   const [showInfo, setShowInfo] = useState(false)
 
   return (
-    <header className="shrink-0 bg-black/20 backdrop-blur-xl border-b border-white/10 z-40">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <header className="shrink-0 bg-black/20 backdrop-blur-xl border-b border-white/10 z-40 pt-[env(safe-area-inset-top)]">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button 
               onClick={onBackClick} 
-              className="group flex items-center gap-2 text-white/70 hover:text-white transition-all duration-200"
+              className="group flex items-center gap-1 sm:gap-2 text-white/70 hover:text-white transition-all duration-200"
             >
               <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

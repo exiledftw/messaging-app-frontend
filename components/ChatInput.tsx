@@ -73,7 +73,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
   return (
     <footer 
       ref={containerRef}
-      className="shrink-0 bg-black/20 backdrop-blur-xl border-t border-white/10 p-3 sm:p-4 relative z-10 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      className="shrink-0 bg-black/30 backdrop-blur-xl border-t border-white/10 p-3 sm:p-4 relative z-10"
+      style={{ paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom) + 12px))' }}
     >
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
         <div className={`flex gap-2 sm:gap-3 items-end p-2 rounded-2xl transition-all duration-300 ${

@@ -179,42 +179,130 @@ export const messageService = {
   },
 }
 
-// WebSocket helper for real-time messaging
+// WebSocket helper for real-time messaging with auto-reconnect
 export const createWebSocketConnection = (roomId: string, onMessageReceived: (data: any) => void) => {
-  // Use WS_BASE_URL that we defined at the top of the file
-  let wsBase = WS_BASE_URL.replace(/\/$/, "")
+  let socket: WebSocket | null = null
+  let reconnectAttempts = 0
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  let pingInterval: ReturnType<typeof setInterval> | null = null
+  let isClosedManually = false
   
-  // Convert http/https to ws/wss
+  const MAX_RECONNECT_ATTEMPTS = 10
+  const INITIAL_RECONNECT_DELAY = 1000
+  const MAX_RECONNECT_DELAY = 30000
+  const PING_INTERVAL = 25000 // Send ping every 25 seconds to keep connection alive
+
+  // Build WebSocket URL
+  let wsBase = WS_BASE_URL.replace(/\/$/, "")
   if (wsBase.startsWith("https://")) wsBase = wsBase.replace(/^https:/, "wss:")
   else if (wsBase.startsWith("http://")) wsBase = wsBase.replace(/^http:/, "ws:")
-
   const wsUrl = `${wsBase}/ws/chat/${roomId}/`
-  console.info("WebSocket connecting to:", wsUrl)
-  const socket = new WebSocket(wsUrl)
 
-  socket.onmessage = (event: MessageEvent) => {
+  const getReconnectDelay = () => {
+    return Math.min(INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY)
+  }
+
+  const connect = () => {
+    if (isClosedManually) return
+    if (socket?.readyState === WebSocket.OPEN || socket?.readyState === WebSocket.CONNECTING) {
+      return
+    }
+
+    console.info(`🔌 WebSocket connecting to: ${wsUrl} (attempt ${reconnectAttempts + 1})`)
+    
     try {
-      const data = JSON.parse(event.data)
-      console.log("WebSocket message received:", data)
-      onMessageReceived(data)
-    } catch (e) {
-      console.error("Invalid WS message", e)
+      socket = new WebSocket(wsUrl)
+    } catch (error) {
+      console.error("Failed to create WebSocket:", error)
+      scheduleReconnect()
+      return
+    }
+
+    socket.onopen = () => {
+      console.info("✅ WebSocket connected successfully to:", wsUrl)
+      reconnectAttempts = 0
+      
+      // Start ping interval to keep connection alive
+      if (pingInterval) clearInterval(pingInterval)
+      pingInterval = setInterval(() => {
+        if (socket?.readyState === WebSocket.OPEN) {
+          try {
+            socket.send(JSON.stringify({ type: "ping" }))
+          } catch (e) {
+            console.error("Ping failed:", e)
+          }
+        }
+      }, PING_INTERVAL)
+    }
+
+    socket.onmessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data)
+        // Ignore pong responses
+        if (data.type === "pong") return
+        console.log("📨 WebSocket message received:", data)
+        onMessageReceived(data)
+      } catch (e) {
+        console.error("Invalid WebSocket message:", e)
+      }
+    }
+
+    socket.onerror = (error) => {
+      console.error("❌ WebSocket error:", error)
+    }
+
+    socket.onclose = (event) => {
+      console.warn("🔌 WebSocket closed:", { code: event.code, reason: event.reason, wasClean: event.wasClean })
+      
+      if (pingInterval) {
+        clearInterval(pingInterval)
+        pingInterval = null
+      }
+      
+      if (!isClosedManually && !event.wasClean) {
+        scheduleReconnect()
+      }
     }
   }
 
-  socket.onerror = (error) => {
-    console.error("WebSocket error:", error)
+  const scheduleReconnect = () => {
+    if (isClosedManually || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.error("❌ Max reconnection attempts reached. Please refresh the page.")
+      }
+      return
+    }
+
+    const delay = getReconnectDelay()
+    reconnectAttempts++
+    console.info(`🔄 Reconnecting in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`)
+    
+    reconnectTimer = setTimeout(() => {
+      connect()
+    }, delay)
   }
 
-  socket.onopen = () => {
-    console.info("WebSocket open", wsUrl)
-  }
+  // Initial connection
+  connect()
 
-  socket.onclose = (event) => {
-    console.warn("WebSocket closed", { code: event.code, reason: event.reason, wasClean: event.wasClean, url: wsUrl })
+  // Return an object that looks like a WebSocket but with extra methods
+  return {
+    get readyState() { return socket?.readyState ?? WebSocket.CLOSED },
+    send: (data: string) => socket?.send(data),
+    close: () => {
+      isClosedManually = true
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      if (pingInterval) clearInterval(pingInterval)
+      socket?.close()
+    },
+    reconnect: () => {
+      isClosedManually = false
+      reconnectAttempts = 0
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      if (socket) socket.close()
+      connect()
+    }
   }
-
-  return socket
 }
 
 // Convert server message shape into UI message shape expected by ChatMessages

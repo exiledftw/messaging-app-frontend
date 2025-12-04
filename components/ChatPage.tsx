@@ -6,6 +6,14 @@ import ChatMessages from "@/components/ChatMessages"
 import ChatInput from "@/components/ChatInput"
 import { messageService, createWebSocketConnection, mapServerMessage } from "@/lib/api-service"
 
+// Type for the WebSocket connection object returned by createWebSocketConnection
+interface WebSocketConnection {
+  readonly readyState: number;
+  send: (data: string) => void | undefined;
+  close: () => void;
+  reconnect: () => void;
+}
+
 export default function ChatPage({ user, room, onBackClick }: any) {
   const userFullName = user?.firstName ? `${user.firstName} ${user.lastName}` : user?.id
   const initialMessages = (room?.messages || []).map((rm: any) => {
@@ -14,7 +22,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     return mm
   })
   const [messages, setMessages] = useState<any[]>(initialMessages || [])
-  const socketRef = useRef<WebSocket | null>(null)
+  const socketRef = useRef<WebSocketConnection | null>(null)
 
   if (!room) {
     return (

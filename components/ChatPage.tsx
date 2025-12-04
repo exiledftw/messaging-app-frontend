@@ -29,7 +29,15 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     return mm
   })
   const [messages, setMessages] = useState<any[]>(initialMessages || [])
+  const [lastMessageId, setLastMessageId] = useState<number | null>(null)
+  const lastMessageIdRef = useRef<number | null>(null)
   const socketRef = useRef<WebSocketConnection | null>(null)
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    lastMessageIdRef.current = lastMessageId
+  }, [lastMessageId])
 
   if (!room) {
     return (
@@ -84,22 +92,59 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     if (!room) return
     try {
       const fetched = await messageService.getMessages(room.id)
-      if (Array.isArray(fetched))
-        setMessages(
-          fetched.map((m: any) => {
+      if (Array.isArray(fetched)) {
+        const mappedMessages = fetched.map((m: any) => {
+          const msg = mapServerMessage(m)
+          msg.isMine = msg.sender?.id === userFullNameRef.current
+          return msg
+        })
+        setMessages(mappedMessages)
+        
+        // Track the latest message ID
+        if (mappedMessages.length > 0) {
+          const latestId = Math.max(...mappedMessages.map((m: any) => m.id || 0))
+          setLastMessageId(latestId)
+        }
+      }
+    } catch (e) {
+      console.error("Could not load messages", e)
+    }
+  }
+  
+  // Check for new messages without full reload
+  const checkForNewMessages = async () => {
+    if (!room) return
+    try {
+      const fetched = await messageService.getMessages(room.id)
+      if (Array.isArray(fetched) && fetched.length > 0) {
+        // Get the latest message ID from server
+        const serverLatestId = Math.max(...fetched.map((m: any) => m.id || 0))
+        
+        // Only update if we have new messages
+        if (lastMessageIdRef.current !== null && serverLatestId > lastMessageIdRef.current) {
+          console.log(`📬 New messages detected! Server: ${serverLatestId}, Local: ${lastMessageIdRef.current}`)
+          const mappedMessages = fetched.map((m: any) => {
             const msg = mapServerMessage(m)
             msg.isMine = msg.sender?.id === userFullNameRef.current
             return msg
           })
-        )
+          setMessages(mappedMessages)
+          setLastMessageId(serverLatestId)
+        }
+      }
     } catch (e) {
-      console.error("Could not load messages", e)
+      console.error("Could not check for new messages", e)
     }
   }
 
   useEffect(() => {
     // Initial load
     loadMessages()
+
+    // Start polling for new messages every 2 seconds
+    pollingIntervalRef.current = setInterval(() => {
+      checkForNewMessages()
+    }, 2000)
 
     // connect websocket for live messages
     if (room) {
@@ -123,7 +168,10 @@ export default function ChatPage({ user, room, onBackClick }: any) {
                     return prev
                   }
                   console.log('✅ Adding new message:', uiMsg.id)
-                  return [...prev, uiMsg]
+                  const updated = [...prev, uiMsg]
+                  // Update last message ID
+                  setLastMessageId(uiMsg.id)
+                  return updated
                 })
               } else {
                 console.warn('⚠️ No payload in WebSocket message')
@@ -146,6 +194,11 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
+      // Clean up polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+      
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       try {
         socketRef.current?.close()

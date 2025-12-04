@@ -175,9 +175,9 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
   const canCreate = createdRoomsCount < MAX_ROOMS_PER_USER
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950 relative overflow-x-hidden overflow-y-auto">
       {/* Background decorative elements */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-3xl"></div>
         <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>

@@ -43,7 +43,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-hidden bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950`}
       >
         {children}
       </body>

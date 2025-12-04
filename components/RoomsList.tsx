@@ -1,9 +1,15 @@
 "use client"
 
+import { useState } from "react"
+
 type Member = {
-  firstName: string
-  lastName: string
-  initials: string
+  id?: number
+  firstName?: string
+  lastName?: string
+  first_name?: string
+  last_name?: string
+  initials?: string
+  username?: string
 }
 
 type Room = {
@@ -11,15 +17,60 @@ type Room = {
   name: string
   key: string
   members?: Member[]
+  creator_id?: number
 }
 
 type Props = {
   rooms: Room[]
   user: any
   onRoomClick: (roomId: string | number) => void
+  onLeaveRoom?: (roomId: string | number) => void
+  onDeleteRoom?: (roomId: string | number) => void
 }
 
-export default function RoomsList({ rooms, user, onRoomClick }: Props) {
+// Helper to get member initials
+const getMemberInitials = (member: Member): string => {
+  if (member.initials) return member.initials
+  const first = member.firstName || member.first_name || ''
+  const last = member.lastName || member.last_name || ''
+  if (first && last) return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
+  if (first) return first.charAt(0).toUpperCase()
+  if (member.username) return member.username.charAt(0).toUpperCase()
+  return '?'
+}
+
+// Helper to get member display name
+const getMemberName = (member: Member): string => {
+  const first = member.firstName || member.first_name || ''
+  const last = member.lastName || member.last_name || ''
+  if (first || last) return `${first} ${last}`.trim()
+  return member.username || 'Unknown'
+}
+
+export default function RoomsList({ rooms, user, onRoomClick, onLeaveRoom, onDeleteRoom }: Props) {
+  const [confirmDelete, setConfirmDelete] = useState<string | number | null>(null)
+  const [confirmLeave, setConfirmLeave] = useState<string | number | null>(null)
+
+  const handleDeleteClick = (e: React.MouseEvent, roomId: string | number) => {
+    e.stopPropagation()
+    setConfirmDelete(roomId)
+  }
+
+  const handleLeaveClick = (e: React.MouseEvent, roomId: string | number) => {
+    e.stopPropagation()
+    setConfirmLeave(roomId)
+  }
+
+  const confirmDeleteRoom = (roomId: string | number) => {
+    onDeleteRoom?.(roomId)
+    setConfirmDelete(null)
+  }
+
+  const confirmLeaveRoom = (roomId: string | number) => {
+    onLeaveRoom?.(roomId)
+    setConfirmLeave(null)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -39,67 +90,150 @@ export default function RoomsList({ rooms, user, onRoomClick }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {rooms.map((room: Room, idx: number) => (
-            <div
-              key={room.id}
-              onClick={() => onRoomClick(room.id)}
-              className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:scale-[1.02]"
-              style={{ animationDelay: `${idx * 100}ms` }}
-            >
-              {/* Gradient overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 via-purple-500/0 to-violet-500/0 group-hover:from-pink-500/5 group-hover:via-purple-500/5 group-hover:to-violet-500/5 rounded-2xl transition-all duration-300"></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
-                      <span className="text-white font-bold text-lg">{room.name.charAt(0).toUpperCase()}</span>
-                    </div>
-                    <div>
-                      <h3 className="text-white font-bold text-lg group-hover:text-pink-300 transition-colors">{room.name}</h3>
-                      <p className="text-white/50 text-sm">
-                        {room.members?.length || 0} member{(room.members?.length || 0) !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          {rooms.map((room: Room, idx: number) => {
+            const isCreator = room.creator_id === user?.id
+            const showDeleteConfirm = confirmDelete === room.id
+            const showLeaveConfirm = confirmLeave === room.id
+            
+            return (
+              <div
+                key={room.id}
+                onClick={() => !showDeleteConfirm && !showLeaveConfirm && onRoomClick(room.id)}
+                className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:scale-[1.02]"
+                style={{ animationDelay: `${idx * 100}ms` }}
+              >
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 via-purple-500/0 to-violet-500/0 group-hover:from-pink-500/5 group-hover:via-purple-500/5 group-hover:to-violet-500/5 rounded-2xl transition-all duration-300"></div>
                 
-                {/* Room Key Badge */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 px-3 py-1.5 bg-white/10 rounded-lg">
-                    <span className="text-white/40 text-xs">Key:</span>
-                    <span className="text-pink-400 font-mono font-bold text-sm">{room.key}</span>
+                {/* Creator Badge */}
+                {isCreator && (
+                  <div className="absolute top-3 right-3 z-20">
+                    <span className="px-2 py-1 bg-gradient-to-r from-pink-500 to-violet-600 text-white text-xs font-bold rounded-full">
+                      Owner
+                    </span>
+                  </div>
+                )}
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <span className="text-white font-bold text-lg">{room.name.charAt(0).toUpperCase()}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-white font-bold text-lg group-hover:text-pink-300 transition-colors">{room.name}</h3>
+                        <p className="text-white/50 text-sm">
+                          {room.members?.length || 0} member{(room.members?.length || 0) !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Member Avatars */}
-                  <div className="flex items-center -space-x-2">
-                    {room.members?.slice(0, 3).map((member: Member, idx: number) => (
-                      <div
-                        key={idx}
-                        className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-700 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-violet-950 shadow-md"
-                        title={`${member.firstName} ${member.lastName}`}
-                      >
-                        {member.initials}
-                      </div>
-                    ))}
-                    {(room.members?.length || 0) > 3 && (
-                      <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white/70 text-xs font-medium border-2 border-violet-950">
-                        +{room.members!.length - 3}
-                      </div>
-                    )}
+                  {/* Room Key Badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 px-3 py-1.5 bg-white/10 rounded-lg">
+                      <span className="text-white/40 text-xs">Key:</span>
+                      <span className="text-pink-400 font-mono font-bold text-sm">{room.key}</span>
+                    </div>
+                    
+                    {/* Member Avatars */}
+                    <div className="flex items-center -space-x-2">
+                      {room.members?.slice(0, 3).map((member: Member, idx: number) => (
+                        <div
+                          key={idx}
+                          className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-700 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-violet-950 shadow-md"
+                          title={getMemberName(member)}
+                        >
+                          {getMemberInitials(member)}
+                        </div>
+                      ))}
+                      {(room.members?.length || 0) > 3 && (
+                        <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white/70 text-xs font-medium border-2 border-violet-950">
+                          +{room.members!.length - 3}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Enter Room indicator */}
-                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <span className="text-white/50 text-sm">Enter room</span>
-                  <svg className="w-5 h-5 text-pink-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
+                  
+                  {/* Action buttons - show on hover */}
+                  {!showDeleteConfirm && !showLeaveConfirm && (
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <span className="text-white/50 text-sm">Enter room</span>
+                      <div className="flex items-center gap-2">
+                        {/* Leave/Delete button */}
+                        {isCreator ? (
+                          <button
+                            onClick={(e) => handleDeleteClick(e, room.id)}
+                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
+                            title="Delete room"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => handleLeaveClick(e, room.id)}
+                            className="p-2 rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:text-orange-300 transition-all"
+                            title="Leave room"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                          </button>
+                        )}
+                        <svg className="w-5 h-5 text-pink-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Delete Confirmation */}
+                  {showDeleteConfirm && (
+                    <div className="mt-4 pt-4 border-t border-white/5">
+                      <p className="text-red-400 text-sm mb-3">Delete this room? All messages will be lost.</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); confirmDeleteRoom(room.id); }}
+                          className="flex-1 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }}
+                          className="flex-1 py-2 bg-white/10 text-white rounded-lg text-sm font-medium hover:bg-white/20 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Leave Confirmation */}
+                  {showLeaveConfirm && (
+                    <div className="mt-4 pt-4 border-t border-white/5">
+                      <p className="text-orange-400 text-sm mb-3">Leave this room?</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); confirmLeaveRoom(room.id); }}
+                          className="flex-1 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+                        >
+                          Leave
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setConfirmLeave(null); }}
+                          className="flex-1 py-2 bg-white/10 text-white rounded-lg text-sm font-medium hover:bg-white/20 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

@@ -54,7 +54,12 @@ export const roomService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: roomName, creator_id: userId }),
       })
-      if (!response.ok) throw new Error("Room creation failed")
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Room creation failed' }))
+        const err: any = new Error(errorData.detail || "Room creation failed")
+        err.status = response.status
+        throw err
+      }
       return await response.json()
     } catch (error) {
       handleApiError(error)
@@ -74,6 +79,53 @@ export const roomService = {
         console.error('Join room failed:', response.status, errorData)
         throw new Error(errorData.detail || "Failed to join room")
       }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
+
+  leaveRoom: async (roomId: string | number, userId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/leave/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId }),
+      })
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to leave room' }))
+        const err: any = new Error(errorData.detail || "Failed to leave room")
+        err.status = response.status
+        throw err
+      }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
+
+  deleteRoom: async (roomId: string | number, userId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/delete/?user_id=${userId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      })
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to delete room' }))
+        const err: any = new Error(errorData.detail || "Failed to delete room")
+        err.status = response.status
+        throw err
+      }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
+
+  getRoomStats: async (userId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rooms/stats/?user_id=${userId}`)
+      if (!response.ok) throw new Error("Failed to fetch room stats")
       return await response.json()
     } catch (error) {
       handleApiError(error)

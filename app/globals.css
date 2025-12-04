@@ -167,7 +167,7 @@
   }
   
   .safe-bottom {
-    padding-bottom: max(env(safe-area-inset-bottom), 80px);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
   /* Lock scrolling class - apply to pages that need fixed viewport (like chat) */

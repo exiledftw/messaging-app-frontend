@@ -9,24 +9,37 @@ interface ChatInputProps {
 export default function ChatInput({ onSendMessage }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const [isFocused, setIsFocused] = useState(false)
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Handle mobile keyboard - scroll to input when focused
+  // Handle mobile keyboard - adjust position when keyboard appears
   useEffect(() => {
     const handleResize = () => {
-      if (isFocused && textareaRef.current) {
-        // Small delay to let keyboard fully open
-        setTimeout(() => {
-          textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
-        }, 100)
+      if (typeof window !== "undefined" && window.visualViewport) {
+        const viewport = window.visualViewport
+        // Calculate keyboard height (difference between window height and viewport height)
+        const kbHeight = window.innerHeight - viewport.height
+        setKeyboardHeight(kbHeight > 0 ? kbHeight : 0)
+        
+        if (isFocused && textareaRef.current && kbHeight > 0) {
+          // Small delay to let keyboard fully open
+          setTimeout(() => {
+            textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+          }, 100)
+        }
       }
     }
 
     // Listen for visual viewport changes (mobile keyboard)
     if (typeof window !== "undefined" && window.visualViewport) {
+      handleResize() // Initial check
       window.visualViewport.addEventListener("resize", handleResize)
-      return () => window.visualViewport?.removeEventListener("resize", handleResize)
+      window.visualViewport.addEventListener("scroll", handleResize)
+      return () => {
+        window.visualViewport?.removeEventListener("resize", handleResize)
+        window.visualViewport?.removeEventListener("scroll", handleResize)
+      }
     }
   }, [isFocused])
 
@@ -73,9 +86,11 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
   return (
     <footer 
       ref={containerRef}
-      className="shrink-0 bg-black/40 backdrop-blur-xl border-t border-white/10 p-3 sm:p-4 relative z-10 pb-8 sm:pb-4"
+      className="shrink-0 bg-black/40 backdrop-blur-xl border-t border-white/10 p-3 sm:p-4 relative z-10 transition-all duration-200"
       style={{ 
-        paddingBottom: 'max(4rem, calc(env(safe-area-inset-bottom) + 3rem))',
+        paddingBottom: keyboardHeight > 0 
+          ? `${Math.max(keyboardHeight + 16, 80)}px` // When keyboard is open, add extra padding
+          : `max(env(safe-area-inset-bottom) + 1rem, 1rem)`, // Normal padding when keyboard is closed
       }}
     >
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">

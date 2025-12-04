@@ -151,6 +151,57 @@ export const roomService = {
       handleApiError(error)
     }
   },
+
+  renameRoom: async (roomId: string | number, newName: string, performerId?: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/rename/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName, performer_id: performerId }),
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: "Failed to rename room" }))
+        throw new Error(err.detail || "Failed to rename room")
+      }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
+
+  kickMember: async (roomId: string | number, targetUserId: string | number, performerId?: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/kick/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_user_id: targetUserId, performer_id: performerId }),
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: "Failed to kick member" }))
+        throw new Error(err.detail || "Failed to kick member")
+      }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
+
+  banMember: async (roomId: string | number, targetUserId: string | number, performerId?: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/ban/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_user_id: targetUserId, performer_id: performerId }),
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: "Failed to ban member" }))
+        throw new Error(err.detail || "Failed to ban member")
+      }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
 }
 
 export const messageService = {

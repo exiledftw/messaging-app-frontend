@@ -16,6 +16,13 @@ interface WebSocketConnection {
 
 export default function ChatPage({ user, room, onBackClick }: any) {
   const userFullName = user?.firstName ? `${user.firstName} ${user.lastName}` : user?.id
+  const userFullNameRef = useRef(userFullName)
+  
+  // Update ref when userFullName changes
+  useEffect(() => {
+    userFullNameRef.current = userFullName
+  }, [userFullName])
+  
   const initialMessages = (room?.messages || []).map((rm: any) => {
     const mm = mapServerMessage(rm)
     mm.isMine = mm.sender?.id === userFullName
@@ -64,7 +71,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
       // the REST response `sent` will be used; we dedupe by id before appending.
       if (sent) {
         const uiMsg = mapServerMessage(sent)
-        uiMsg.isMine = uiMsg.sender?.id === userFullName
+        uiMsg.isMine = uiMsg.sender?.id === userFullNameRef.current
         setMessages((prev) => (prev.some((m) => m.id === uiMsg.id) ? prev : [...prev, uiMsg]))
       }
     } catch (e) {
@@ -81,7 +88,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
         setMessages(
           fetched.map((m: any) => {
             const msg = mapServerMessage(m)
-            msg.isMine = msg.sender?.id === userFullName
+            msg.isMine = msg.sender?.id === userFullNameRef.current
             return msg
           })
         )
@@ -98,14 +105,28 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     if (room) {
       try {
             const s = createWebSocketConnection(room.id, (data) => {
+              console.log('🔔 WebSocket message received:', data)
               // the backend sends a small message payload {id, user_name, content, created_at}
               const serverMessage = data
               // If the backend wraps, prefer the message key
               const payload = serverMessage.message || serverMessage
               if (payload) {
+                console.log('📨 Processing message:', payload)
                 const uiMsg = mapServerMessage(payload)
-                uiMsg.isMine = uiMsg.sender?.id === userFullName
-                setMessages((prev) => (prev.some((m) => m.id === uiMsg.id) ? prev : [...prev, uiMsg]))
+                uiMsg.isMine = uiMsg.sender?.id === userFullNameRef.current
+                
+                // Use functional update to ensure we have latest state
+                setMessages((prev) => {
+                  // Check if message already exists
+                  if (prev.some((m) => m.id === uiMsg.id)) {
+                    console.log('⚠️ Message already exists, skipping:', uiMsg.id)
+                    return prev
+                  }
+                  console.log('✅ Adding new message:', uiMsg.id)
+                  return [...prev, uiMsg]
+                })
+              } else {
+                console.warn('⚠️ No payload in WebSocket message')
               }
             })
         socketRef.current = s

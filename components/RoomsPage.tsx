@@ -41,7 +41,7 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
       alert(`You can only create up to ${MAX_ROOMS_PER_USER} rooms. Delete an existing room to create a new one.`)
       return
     }
-    
+
     setIsLoading(true)
     try {
       const created = await roomService.createRoom(roomName, user.id)
@@ -175,14 +175,13 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
   const canCreate = createdRoomsCount < MAX_ROOMS_PER_USER
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-950 via-purple-900 to-fuchsia-950 relative overflow-x-hidden overflow-y-auto">
-      {/* Background decorative elements */}
+    <div className="min-h-screen bg-black relative overflow-x-hidden overflow-y-auto">
+      {/* Subtle gradient overlay */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-purple-600/[0.06] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-violet-600/[0.04] rounded-full blur-[100px]" />
       </div>
-      
+
       {/* Loading overlay */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -192,7 +191,7 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
           </div>
         </div>
       )}
-      
+
       <UserHeader user={user} onLogout={onLogout} />
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -202,17 +201,16 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
             <div className="flex flex-col gap-4 sticky top-8">
               <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 space-y-4">
                 <h3 className="text-white/60 text-sm font-medium uppercase tracking-wider">Quick Actions</h3>
-                
+
                 {/* Create Room Button with limit indicator */}
                 <div>
                   <button
                     onClick={() => canCreate ? setShowCreateModal(true) : alert(`You've reached the maximum of ${MAX_ROOMS_PER_USER} rooms. Delete a room to create a new one.`)}
                     disabled={!canCreate}
-                    className={`w-full group flex items-center justify-center gap-2 font-bold py-4 px-4 rounded-xl transition-all duration-200 ${
-                      canCreate 
+                    className={`w-full group flex items-center justify-center gap-2 font-bold py-4 px-4 rounded-xl transition-all duration-200 ${canCreate
                         ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-violet-600 text-white hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02]'
                         : 'bg-white/10 text-white/50 cursor-not-allowed'
-                    }`}
+                      }`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -224,7 +222,7 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
                     {createdRoomsCount}/{MAX_ROOMS_PER_USER} rooms created
                   </p>
                 </div>
-                
+
                 <button
                   onClick={() => setShowJoinModal(true)}
                   className="w-full flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white font-semibold py-4 px-4 rounded-xl hover:bg-white/20 transition-all duration-200 border border-white/10"
@@ -235,7 +233,7 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
                   Join Room
                 </button>
               </div>
-              
+
               {/* Stats card */}
               <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -268,10 +266,10 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
 
           {/* Rooms Grid */}
           <div className="flex-1">
-            <RoomsList 
-              rooms={rooms} 
-              user={user} 
-              onRoomClick={onRoomClick} 
+            <RoomsList
+              rooms={rooms}
+              user={user}
+              onRoomClick={onRoomClick}
               onLeaveRoom={handleLeaveRoom}
               onDeleteRoom={handleDeleteRoom}
             />

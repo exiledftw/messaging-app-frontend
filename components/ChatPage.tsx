@@ -15,17 +15,32 @@ interface WebSocketConnection {
 }
 
 export default function ChatPage({ user, room, onBackClick }: any) {
-  const userFullName = user?.firstName ? `${user.firstName} ${user.lastName}` : user?.id
+  const userFullName = user?.firstName ? `${user.firstName} ${user.lastName}`.trim() : user?.id
+  const currentUserId = user?.id // Use numeric ID for comparison
   const userFullNameRef = useRef(userFullName)
-  
-  // Update ref when userFullName changes
+  const currentUserIdRef = useRef(currentUserId)
+
+  // Update refs when user changes
   useEffect(() => {
     userFullNameRef.current = userFullName
-  }, [userFullName])
-  
+    currentUserIdRef.current = currentUserId
+  }, [userFullName, currentUserId])
+
+  // Helper to check if a message is from current user
+  const isMyMessage = (msg: any) => {
+    const msgUserId = msg.user_id || msg.userId || msg.sender?.id
+    // Compare by numeric ID first, then by name as fallback
+    if (currentUserId && msgUserId) {
+      return String(msgUserId) === String(currentUserId)
+    }
+    // Fallback to name comparison
+    const msgUserName = msg.user_name || msg.user || msg.sender?.firstName
+    return msgUserName === userFullName || String(msgUserId) === String(userFullName)
+  }
+
   const initialMessages = (room?.messages || []).map((rm: any) => {
     const mm = mapServerMessage(rm)
-    mm.isMine = mm.sender?.id === userFullName
+    mm.isMine = isMyMessage(rm)
     return mm
   })
   const [messages, setMessages] = useState<any[]>(initialMessages || [])
@@ -33,7 +48,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
   const lastMessageIdRef = useRef<number | null>(null)
   const socketRef = useRef<WebSocketConnection | null>(null)
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  
+
   // Keep ref in sync with state
   useEffect(() => {
     lastMessageIdRef.current = lastMessageId
@@ -47,7 +62,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
           <div className="absolute top-0 left-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="relative z-10 text-center p-8">
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-pink-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10">
             <svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,8 +71,8 @@ export default function ChatPage({ user, room, onBackClick }: any) {
           </div>
           <h1 className="text-white text-3xl font-bold mb-3">Room not found</h1>
           <p className="text-white/50 mb-6">This room may have been deleted or doesn't exist.</p>
-          <button 
-            onClick={onBackClick} 
+          <button
+            onClick={onBackClick}
             className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 via-purple-500 to-violet-600 text-white font-bold px-8 py-3 rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 transition-all duration-200"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,13 +88,14 @@ export default function ChatPage({ user, room, onBackClick }: any) {
   const handleSendMessage = async (messageText: string) => {
     try {
       // send over REST - backend will broadcast via websocket
-  const sent = await messageService.sendMessage(room.id, user.id, messageText, userFullName)
-  console.info("Message POST response:", sent)
+      const sent = await messageService.sendMessage(room.id, user.id, messageText, userFullName)
+      console.info("Message POST response:", sent)
       // If the websocket broadcast arrives, we'll get the message from it. If WS is not available,
       // the REST response `sent` will be used; we dedupe by id before appending.
       if (sent) {
         const uiMsg = mapServerMessage(sent)
-        uiMsg.isMine = uiMsg.sender?.id === userFullNameRef.current
+        // Use ID comparison for ownership
+        uiMsg.isMine = String(sent.user_id) === String(currentUserIdRef.current)
         setMessages((prev) => (prev.some((m) => m.id === uiMsg.id) ? prev : [...prev, uiMsg]))
       }
     } catch (e) {
@@ -95,11 +111,12 @@ export default function ChatPage({ user, room, onBackClick }: any) {
       if (Array.isArray(fetched)) {
         const mappedMessages = fetched.map((m: any) => {
           const msg = mapServerMessage(m)
-          msg.isMine = msg.sender?.id === userFullNameRef.current
+          // Use ID comparison for ownership
+          msg.isMine = String(m.user_id) === String(currentUserIdRef.current)
           return msg
         })
         setMessages(mappedMessages)
-        
+
         // Track the latest message ID
         if (mappedMessages.length > 0) {
           const latestId = Math.max(...mappedMessages.map((m: any) => m.id || 0))
@@ -110,7 +127,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
       console.error("Could not load messages", e)
     }
   }
-  
+
   // Check for new messages without full reload
   const checkForNewMessages = async () => {
     if (!room) return
@@ -119,13 +136,14 @@ export default function ChatPage({ user, room, onBackClick }: any) {
       if (Array.isArray(fetched) && fetched.length > 0) {
         // Get the latest message ID from server
         const serverLatestId = Math.max(...fetched.map((m: any) => m.id || 0))
-        
+
         // Only update if we have new messages
         if (lastMessageIdRef.current !== null && serverLatestId > lastMessageIdRef.current) {
           console.log(`📬 New messages detected! Server: ${serverLatestId}, Local: ${lastMessageIdRef.current}`)
           const mappedMessages = fetched.map((m: any) => {
             const msg = mapServerMessage(m)
-            msg.isMine = msg.sender?.id === userFullNameRef.current
+            // Use ID comparison for ownership
+            msg.isMine = String(m.user_id) === String(currentUserIdRef.current)
             return msg
           })
           setMessages(mappedMessages)
@@ -149,34 +167,35 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     // connect websocket for live messages
     if (room) {
       try {
-            const s = createWebSocketConnection(room.id, (data) => {
-              console.log('🔔 WebSocket message received:', data)
-              // the backend sends a small message payload {id, user_name, content, created_at}
-              const serverMessage = data
-              // If the backend wraps, prefer the message key
-              const payload = serverMessage.message || serverMessage
-              if (payload) {
-                console.log('📨 Processing message:', payload)
-                const uiMsg = mapServerMessage(payload)
-                uiMsg.isMine = uiMsg.sender?.id === userFullNameRef.current
-                
-                // Use functional update to ensure we have latest state
-                setMessages((prev) => {
-                  // Check if message already exists
-                  if (prev.some((m) => m.id === uiMsg.id)) {
-                    console.log('⚠️ Message already exists, skipping:', uiMsg.id)
-                    return prev
-                  }
-                  console.log('✅ Adding new message:', uiMsg.id)
-                  const updated = [...prev, uiMsg]
-                  // Update last message ID
-                  setLastMessageId(uiMsg.id)
-                  return updated
-                })
-              } else {
-                console.warn('⚠️ No payload in WebSocket message')
+        const s = createWebSocketConnection(room.id, (data) => {
+          console.log('🔔 WebSocket message received:', data)
+          // the backend sends a small message payload {id, user_name, content, created_at}
+          const serverMessage = data
+          // If the backend wraps, prefer the message key
+          const payload = serverMessage.message || serverMessage
+          if (payload) {
+            console.log('📨 Processing message:', payload)
+            const uiMsg = mapServerMessage(payload)
+            // Use ID comparison for ownership
+            uiMsg.isMine = String(payload.user_id) === String(currentUserIdRef.current)
+
+            // Use functional update to ensure we have latest state
+            setMessages((prev) => {
+              // Check if message already exists
+              if (prev.some((m) => m.id === uiMsg.id)) {
+                console.log('⚠️ Message already exists, skipping:', uiMsg.id)
+                return prev
               }
+              console.log('✅ Adding new message:', uiMsg.id)
+              const updated = [...prev, uiMsg]
+              // Update last message ID
+              setLastMessageId(uiMsg.id)
+              return updated
             })
+          } else {
+            console.warn('⚠️ No payload in WebSocket message')
+          }
+        })
         socketRef.current = s
       } catch (e) {
         console.error("WS connection failed", e)
@@ -198,7 +217,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
       }
-      
+
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       try {
         socketRef.current?.close()
@@ -218,7 +237,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl"></div>
       </div>
-      
+
       <div className="safe-top" />
       <ChatHeader room={room} user={user} onBackClick={onBackClick} />
       <ChatMessages messages={messages} user={user} />

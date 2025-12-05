@@ -26,8 +26,15 @@ export default function Hero({ onStartClick }: Props) {
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold leading-[1.1] tracking-tight">
             <span className="text-white">Start</span>
             <br />
-            <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
-              Yapping
+            <span className="relative inline-block">
+              {/* Neon glow text */}
+              <span className="neon-text bg-gradient-to-r from-purple-400 via-violet-300 to-purple-400 bg-clip-text text-transparent">
+                Yapping
+              </span>
+              {/* Moving glow overlay */}
+              <span className="absolute inset-0 neon-glow bg-gradient-to-r from-transparent via-purple-400/80 to-transparent bg-clip-text text-transparent" aria-hidden="true">
+                Yapping
+              </span>
             </span>
             <br />
             <span className="text-white">Today</span>
@@ -72,6 +79,32 @@ export default function Hero({ onStartClick }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Neon glow animation styles */}
+      <style jsx>{`
+        .neon-text {
+          filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4)) 
+                  drop-shadow(0 0 20px rgba(168, 85, 247, 0.3))
+                  drop-shadow(0 0 40px rgba(168, 85, 247, 0.2));
+        }
+        
+        .neon-glow {
+          animation: neon-sweep 3s ease-in-out infinite;
+          background-size: 200% 100%;
+        }
+        
+        @keyframes neon-sweep {
+          0%, 100% {
+            background-position: -100% 0;
+            opacity: 0;
+          }
+          50% {
+            background-position: 200% 0;
+            opacity: 1;
+          }
+        }
+      `}</style>
     </section>
   )
 }
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, FormEvent, KeyboardEvent, ChangeEvent } from "react"
+import { useState, useRef, FormEvent, KeyboardEvent, ChangeEvent } from "react"
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void
@@ -8,11 +8,11 @@ interface ChatInputProps {
 
 // Emoji data - carefully curated categories
 const emojiCategories = {
-  "Smileys": ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", "", "😌", "😍", "🥰", "😘", "", "😛", "😜", "🤪", "�", "�", "�", "", "", "", "😭", "�", "😤", "😡", "�"],
-  "Gestures": ["👋", "🤚", "✋", "🖖", "👌", "🤌", "✌️", "🤞", "🤟", "🤘", "👈", "👉", "👆", "", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "", "🙏", ""],
+  "Smileys": ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", "😉", "😌", "😍", "🥰", "😘", "😋", "😛", "😜", "🤪", "😎", "🤓", "🥳", "😏", "😔", "😢", "😭", "🥺", "😤", "😡", "🤯"],
+  "Gestures": ["👋", "🤚", "✋", "🖖", "👌", "🤌", "✌️", "🤞", "🤟", "🤘", "👈", "👉", "👆", "👇", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤝", "🙏", "💪"],
   "Hearts": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝"],
-  "Fire": ["🔥", "💯", "✨", "⭐", "🌟", "💫", "⚡", "💥", "�", "�", "🚀", "🏆", "🥇", "✅", "❌"],
-  "Food": ["🍔", "🍕", "�", "🌮", "🍣", "�", "🍦", "🍩", "☕", "�", "�"],
+  "Fire": ["🔥", "💯", "✨", "⭐", "🌟", "💫", "⚡", "💥", "🎉", "🎊", "🚀", "🏆", "🥇", "✅", "❌"],
+  "Food": ["🍔", "🍕", "🍟", "🌮", "🍣", "🍜", "🍦", "🍩", "☕", "🍺", "🍷"],
   "Animals": ["🐶", "🐱", "🐭", "🐰", "🦊", "🐻", "🐼", "🐨", "🦁", "🐸", "🦋"],
 }
 
@@ -58,31 +58,38 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
     <footer className="shrink-0 bg-black/60 backdrop-blur-2xl border-t border-white/[0.06] p-3 sm:p-4 relative z-10"
       style={{ paddingBottom: `max(env(safe-area-inset-bottom) + 0.75rem, 0.75rem)` }}>
 
-      {/* Emoji Picker - Apple style */}
+      {/* Emoji Picker - White/Purple bloom style */}
       {showEmojiPicker && (
-        <div className="absolute bottom-full left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto mb-2 sm:w-[320px] bg-black/90 backdrop-blur-2xl rounded-2xl border border-white/[0.1] shadow-2xl overflow-hidden animate-scale-up">
+        <div className="absolute bottom-full left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto mb-2 sm:w-[340px] bg-white rounded-2xl shadow-2xl shadow-purple-500/25 overflow-hidden animate-scale-up ring-1 ring-purple-200/60">
+          {/* Purple bloom glow effect */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-48 h-48 bg-purple-400/40 rounded-full blur-3xl" />
+            <div className="absolute -bottom-16 right-0 w-40 h-40 bg-violet-400/30 rounded-full blur-3xl" />
+            <div className="absolute top-1/2 -left-10 w-32 h-32 bg-pink-300/20 rounded-full blur-2xl" />
+          </div>
+
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-            <span className="text-sm font-medium text-white/80">Emoji</span>
+          <div className="relative flex items-center justify-between px-4 py-3 border-b border-purple-100/80 bg-gradient-to-r from-purple-50/80 to-violet-50/60">
+            <span className="text-sm font-semibold text-gray-700">Emoji</span>
             <button
               onClick={() => setShowEmojiPicker(false)}
-              className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-purple-100 transition-colors"
             >
-              <svg className="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
           {/* Categories */}
-          <div className="flex gap-1 px-3 py-2 border-b border-white/[0.06] overflow-x-auto scrollbar-hide">
+          <div className="relative flex gap-1.5 px-3 py-2.5 border-b border-purple-100/50 overflow-x-auto scrollbar-hide bg-gradient-to-r from-white via-purple-50/30 to-white">
             {Object.keys(emojiCategories).map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap transition-all ${activeCategory === cat
-                    ? 'bg-purple-500/20 text-purple-400'
-                    : 'text-white/40 hover:text-white/60 hover:bg-white/[0.04]'
+                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-all ${activeCategory === cat
+                    ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg shadow-purple-400/40'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-purple-100/60'
                   }`}
               >
                 {cat}
@@ -91,13 +98,13 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
           </div>
 
           {/* Emoji grid */}
-          <div className="p-3 h-[180px] overflow-y-auto">
-            <div className="grid grid-cols-8 gap-0.5">
+          <div className="relative p-3 h-[200px] overflow-y-auto bg-gradient-to-b from-white via-white to-purple-50/50">
+            <div className="grid grid-cols-8 gap-1">
               {emojiCategories[activeCategory as keyof typeof emojiCategories]?.map((emoji, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleEmojiClick(emoji)}
-                  className="w-9 h-9 flex items-center justify-center text-xl rounded-lg hover:bg-white/10 active:scale-90 transition-all"
+                  className="w-9 h-9 flex items-center justify-center text-xl rounded-xl hover:bg-purple-100 hover:scale-110 active:scale-95 transition-all duration-150"
                 >
                   {emoji}
                 </button>

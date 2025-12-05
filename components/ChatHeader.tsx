@@ -178,8 +178,8 @@ export default function ChatHeader({ room, user, onBackClick, onlineUsers = [] }
               <button
                 onClick={() => setShowInfo(!showInfo)}
                 className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all ${showInfo
-                    ? 'bg-purple-500/20 text-purple-400'
-                    : 'bg-white/[0.06] text-white/50 hover:bg-white/[0.1] hover:text-white/70'
+                  ? 'bg-purple-500/20 text-purple-400'
+                  : 'bg-white/[0.06] text-white/50 hover:bg-white/[0.1] hover:text-white/70'
                   }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +249,13 @@ export default function ChatHeader({ room, user, onBackClick, onlineUsers = [] }
                             onClick={() => handleKick(memberId)}
                             className="px-2 py-1 text-[10px] text-orange-400 hover:bg-orange-500/10 rounded transition-colors"
                           >
-                            Remove
+                            Kick
+                          </button>
+                          <button
+                            onClick={() => handleBan(memberId)}
+                            className="px-2 py-1 text-[10px] text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                          >
+                            Ban
                           </button>
                         </div>
                       )}

@@ -73,15 +73,15 @@ export default function ChatMessages({ messages, user }: { messages: any[]; user
                         <span className="text-[10px] font-semibold text-white">{msg.sender?.initials ?? "?"}</span>
                       </div>
                       <span className="text-xs text-white/50 font-medium">
-                        {`${msg.sender?.firstName || ''}`.trim() || "Anonymous"}
+                        {`${msg.sender?.firstName || ''} ${msg.sender?.lastName || ''}`.trim() || "Anonymous"}
                       </span>
                     </div>
                   )}
 
                   {/* Message Bubble - Apple style */}
                   <div className={`relative group ${msg.isMine
-                      ? "bg-gradient-to-br from-purple-500 to-violet-600 text-white"
-                      : "bg-white/[0.08] text-white/90 backdrop-blur-sm"
+                    ? "bg-gradient-to-br from-purple-500 to-violet-600 text-white"
+                    : "bg-white/[0.08] text-white/90 backdrop-blur-sm"
                     } px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl ${msg.isMine ? "rounded-br-md" : "rounded-bl-md"
                     } transition-all duration-200`}>
 

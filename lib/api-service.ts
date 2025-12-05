@@ -282,15 +282,18 @@ export const createWebSocketConnection = (
       // Announce presence when connected
       if (userId && socket?.readyState === WebSocket.OPEN) {
         try {
-          socket.send(JSON.stringify({
+          const presenceMsg = {
             type: "user_connected",
             user_id: userId,
             user_name: userName || `User ${userId}`
-          }))
-          console.info("👋 Sent presence announcement")
+          }
+          console.info("👋 Sending presence announcement:", presenceMsg)
+          socket.send(JSON.stringify(presenceMsg))
         } catch (e) {
           console.error("Failed to send presence announcement:", e)
         }
+      } else {
+        console.warn("⚠️ Cannot send presence - userId:", userId, "socket ready:", socket?.readyState === WebSocket.OPEN)
       }
 
       // Start ping interval to keep connection alive

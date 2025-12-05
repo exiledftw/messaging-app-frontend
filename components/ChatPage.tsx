@@ -44,7 +44,8 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     return mm
   })
   const [messages, setMessages] = useState<any[]>(initialMessages || [])
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+  // Initialize with current user as online
+  const [onlineUsers, setOnlineUsers] = useState<string[]>(currentUserId ? [String(currentUserId)] : [])
   const [lastMessageId, setLastMessageId] = useState<number | null>(null)
   const lastMessageIdRef = useRef<number | null>(null)
   const socketRef = useRef<WebSocketConnection | null>(null)
@@ -203,9 +204,12 @@ export default function ChatPage({ user, room, onBackClick }: any) {
           userFullName,
           (presenceData) => {
             // Handle presence updates
-            console.log('👥 Presence update:', presenceData)
-            if (presenceData.online_users) {
-              setOnlineUsers(presenceData.online_users)
+            console.log('👥 Presence update received:', presenceData)
+            if (presenceData.online_users && Array.isArray(presenceData.online_users)) {
+              // Convert all IDs to strings for consistent comparison
+              const onlineUserIds = presenceData.online_users.map((id: any) => String(id))
+              console.log('📊 Setting online users:', onlineUserIds)
+              setOnlineUsers(onlineUserIds)
             }
           }
         )

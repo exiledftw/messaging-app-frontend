@@ -21,7 +21,7 @@ export default function LandingPage({ onUserSet }: Props) {
   const [showModal, setShowModal] = useState(false)
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black">
       <Navigation />
       <Hero onStartClick={() => setShowModal(true)} />
       {showModal && <UserSetupModal onClose={() => setShowModal(false)} onUserSet={onUserSet} />}

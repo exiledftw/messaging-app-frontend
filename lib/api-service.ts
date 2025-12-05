@@ -406,5 +406,6 @@ export const mapServerMessage = (m: any, currentUserId?: string) => {
     text: m.content || m.text,
     timestamp: m.created_at || m.timestamp,
     isMine: currentUserId ? (String(userId || userFull) === String(currentUserId)) : undefined,
+    status: 'sent' // Messages from server are already sent
   }
 }

@@ -62,8 +62,8 @@ export default function ChatMessages({ messages, user }: { messages: any[]; user
                 {/* Avatar - Hidden for own messages on mobile for cleaner look */}
                 <div className={`shrink-0 ${msg.isMine ? "hidden sm:block" : ""}`}>
                   <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-sm font-bold shadow-lg ring-2 ${msg.isMine
-                      ? "bg-white text-purple-600 ring-purple-400/50 shadow-purple-500/20"
-                      : "bg-gradient-to-br from-purple-500 to-violet-600 text-white ring-white/20 shadow-violet-500/30"
+                    ? "bg-white text-purple-600 ring-purple-400/50 shadow-purple-500/20"
+                    : "bg-gradient-to-br from-purple-500 to-violet-600 text-white ring-white/20 shadow-violet-500/30"
                     }`}>
                     {msg.sender?.initials ?? "?"}
                   </div>
@@ -81,8 +81,8 @@ export default function ChatMessages({ messages, user }: { messages: any[]; user
 
                   {/* Message Bubble */}
                   <div className={`group relative px-4 py-3 sm:px-5 sm:py-3.5 transition-all duration-300 ${msg.isMine
-                      ? "bg-white text-purple-900 rounded-2xl rounded-tr-md shadow-xl shadow-purple-900/20 hover:shadow-purple-900/30"
-                      : "bg-purple-800/40 backdrop-blur-md text-white rounded-2xl rounded-tl-md border border-purple-500/20 hover:bg-purple-800/50"
+                    ? "bg-white text-purple-900 rounded-2xl rounded-tr-md shadow-xl shadow-purple-900/20 hover:shadow-purple-900/30"
+                    : "bg-purple-800/40 backdrop-blur-md text-white rounded-2xl rounded-tl-md border border-purple-500/20 hover:bg-purple-800/50"
                     }`}>
                     <p className={`break-words leading-relaxed text-sm sm:text-[15px] ${msg.isMine ? "text-purple-900" : "text-white"}`}>
                       {msg.text}
@@ -94,12 +94,20 @@ export default function ChatMessages({ messages, user }: { messages: any[]; user
                     )}
                   </div>
 
-                  {/* Read indicator for own messages */}
+                  {/* Delivery status indicator for own messages */}
                   {msg.isMine && (
                     <div className="flex items-center gap-1 mt-1 mr-1">
-                      <svg className="w-3.5 h-3.5 text-purple-300" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                      </svg>
+                      {msg.status === 'pending' ? (
+                        // Sending - clock icon
+                        <svg className="w-3.5 h-3.5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      ) : (
+                        // Sent - single green checkmark
+                        <svg className="w-3.5 h-3.5 text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                        </svg>
+                      )}
                     </div>
                   )}
                 </div>

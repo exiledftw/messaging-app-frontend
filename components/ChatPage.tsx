@@ -88,20 +88,49 @@ export default function ChatPage({ user, room, onBackClick }: any) {
   }
 
   const handleSendMessage = async (messageText: string) => {
+    // Generate temporary ID for optimistic UI
+    const tempId = `temp-${Date.now()}`
+
+    // Add message optimistically with "pending" status
+    const optimisticMessage = {
+      id: tempId,
+      text: messageText,
+      sender: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        initials: `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()
+      },
+      timestamp: new Date().toISOString(),
+      isMine: true,
+      status: 'pending'
+    }
+
+    setMessages((prev) => [...prev, optimisticMessage])
+
     try {
       // send over REST - backend will broadcast via websocket
       const sent = await messageService.sendMessage(room.id, user.id, messageText, userFullName)
       console.info("Message POST response:", sent)
-      // If the websocket broadcast arrives, we'll get the message from it. If WS is not available,
-      // the REST response `sent` will be used; we dedupe by id before appending.
+
+      // Update the optimistic message with the real one
       if (sent) {
         const uiMsg = mapServerMessage(sent)
         // Use ID comparison for ownership
         uiMsg.isMine = String(sent.user_id) === String(currentUserIdRef.current)
-        setMessages((prev) => (prev.some((m) => m.id === uiMsg.id) ? prev : [...prev, uiMsg]))
+        uiMsg.status = 'sent' // Mark as sent
+
+        setMessages((prev) => {
+          // Replace the temp message with the real one
+          return prev.map(m => m.id === tempId ? uiMsg : m)
+        })
       }
     } catch (e) {
       console.error("Send message failed", e)
+      // Mark message as failed
+      setMessages((prev) =>
+        prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m)
+      )
     }
   }
 

@@ -44,6 +44,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     return mm
   })
   const [messages, setMessages] = useState<any[]>(initialMessages || [])
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const [lastMessageId, setLastMessageId] = useState<number | null>(null)
   const lastMessageIdRef = useRef<number | null>(null)
   const socketRef = useRef<WebSocketConnection | null>(null)
@@ -167,35 +168,47 @@ export default function ChatPage({ user, room, onBackClick }: any) {
     // connect websocket for live messages
     if (room) {
       try {
-        const s = createWebSocketConnection(room.id, (data) => {
-          console.log('🔔 WebSocket message received:', data)
-          // the backend sends a small message payload {id, user_name, content, created_at}
-          const serverMessage = data
-          // If the backend wraps, prefer the message key
-          const payload = serverMessage.message || serverMessage
-          if (payload) {
-            console.log('📨 Processing message:', payload)
-            const uiMsg = mapServerMessage(payload)
-            // Use ID comparison for ownership
-            uiMsg.isMine = String(payload.user_id) === String(currentUserIdRef.current)
+        const s = createWebSocketConnection(
+          room.id,
+          (data) => {
+            console.log('🔔 WebSocket message received:', data)
+            // the backend sends a small message payload {id, user_name, content, created_at}
+            const serverMessage = data
+            // If the backend wraps, prefer the message key
+            const payload = serverMessage.message || serverMessage
+            if (payload) {
+              console.log('📨 Processing message:', payload)
+              const uiMsg = mapServerMessage(payload)
+              // Use ID comparison for ownership
+              uiMsg.isMine = String(payload.user_id) === String(currentUserIdRef.current)
 
-            // Use functional update to ensure we have latest state
-            setMessages((prev) => {
-              // Check if message already exists
-              if (prev.some((m) => m.id === uiMsg.id)) {
-                console.log('⚠️ Message already exists, skipping:', uiMsg.id)
-                return prev
-              }
-              console.log('✅ Adding new message:', uiMsg.id)
-              const updated = [...prev, uiMsg]
-              // Update last message ID
-              setLastMessageId(uiMsg.id)
-              return updated
-            })
-          } else {
-            console.warn('⚠️ No payload in WebSocket message')
+              // Use functional update to ensure we have latest state
+              setMessages((prev) => {
+                // Check if message already exists
+                if (prev.some((m) => m.id === uiMsg.id)) {
+                  console.log('⚠️ Message already exists, skipping:', uiMsg.id)
+                  return prev
+                }
+                console.log('✅ Adding new message:', uiMsg.id)
+                const updated = [...prev, uiMsg]
+                // Update last message ID
+                setLastMessageId(uiMsg.id)
+                return updated
+              })
+            } else {
+              console.warn('⚠️ No payload in WebSocket message')
+            }
+          },
+          user?.id,
+          userFullName,
+          (presenceData) => {
+            // Handle presence updates
+            console.log('👥 Presence update:', presenceData)
+            if (presenceData.online_users) {
+              setOnlineUsers(presenceData.online_users)
+            }
           }
-        })
+        )
         socketRef.current = s
       } catch (e) {
         console.error("WS connection failed", e)
@@ -239,7 +252,7 @@ export default function ChatPage({ user, room, onBackClick }: any) {
       </div>
 
       <div className="safe-top" />
-      <ChatHeader room={room} user={user} onBackClick={onBackClick} />
+      <ChatHeader room={room} user={user} onBackClick={onBackClick} onlineUsers={onlineUsers} />
       <ChatMessages messages={messages} user={user} />
       <ChatInput onSendMessage={handleSendMessage} />
       <div className="safe-bottom" />

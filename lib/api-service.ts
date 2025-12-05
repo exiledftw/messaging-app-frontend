@@ -221,7 +221,7 @@ export const messageService = {
 
   getMessages: async (roomId: string) => {
     try {
-  const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/messages/`)
+      const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/messages/`)
       if (!response.ok) throw new Error("Failed to fetch messages")
       return await response.json()
     } catch (error) {
@@ -230,14 +230,20 @@ export const messageService = {
   },
 }
 
-// WebSocket helper for real-time messaging with auto-reconnect
-export const createWebSocketConnection = (roomId: string, onMessageReceived: (data: any) => void) => {
+// WebSocket helper for real-time messaging with auto-reconnect and presence tracking
+export const createWebSocketConnection = (
+  roomId: string,
+  onMessageReceived: (data: any) => void,
+  userId?: string | number,
+  userName?: string,
+  onPresenceUpdate?: (data: any) => void
+) => {
   let socket: WebSocket | null = null
   let reconnectAttempts = 0
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
   let pingInterval: ReturnType<typeof setInterval> | null = null
   let isClosedManually = false
-  
+
   const MAX_RECONNECT_ATTEMPTS = 10
   const INITIAL_RECONNECT_DELAY = 1000
   const MAX_RECONNECT_DELAY = 30000
@@ -260,7 +266,7 @@ export const createWebSocketConnection = (roomId: string, onMessageReceived: (da
     }
 
     console.info(`🔌 WebSocket connecting to: ${wsUrl} (attempt ${reconnectAttempts + 1})`)
-    
+
     try {
       socket = new WebSocket(wsUrl)
     } catch (error) {
@@ -272,7 +278,21 @@ export const createWebSocketConnection = (roomId: string, onMessageReceived: (da
     socket.onopen = () => {
       console.info("✅ WebSocket connected successfully to:", wsUrl)
       reconnectAttempts = 0
-      
+
+      // Announce presence when connected
+      if (userId && socket?.readyState === WebSocket.OPEN) {
+        try {
+          socket.send(JSON.stringify({
+            type: "user_connected",
+            user_id: userId,
+            user_name: userName || `User ${userId}`
+          }))
+          console.info("👋 Sent presence announcement")
+        } catch (e) {
+          console.error("Failed to send presence announcement:", e)
+        }
+      }
+
       // Start ping interval to keep connection alive
       if (pingInterval) clearInterval(pingInterval)
       pingInterval = setInterval(() => {
@@ -289,8 +309,21 @@ export const createWebSocketConnection = (roomId: string, onMessageReceived: (da
     socket.onmessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data)
+        const msgType = data.type
+
         // Ignore pong responses
-        if (data.type === "pong") return
+        if (msgType === "pong") return
+
+        // Handle presence updates
+        if (msgType === "presence_update") {
+          console.log("👥 Presence update:", data)
+          if (onPresenceUpdate) {
+            onPresenceUpdate(data)
+          }
+          return
+        }
+
+        // Handle regular messages
         console.log("📨 WebSocket message received:", data)
         onMessageReceived(data)
       } catch (e) {
@@ -304,12 +337,12 @@ export const createWebSocketConnection = (roomId: string, onMessageReceived: (da
 
     socket.onclose = (event) => {
       console.warn("🔌 WebSocket closed:", { code: event.code, reason: event.reason, wasClean: event.wasClean })
-      
+
       if (pingInterval) {
         clearInterval(pingInterval)
         pingInterval = null
       }
-      
+
       if (!isClosedManually && !event.wasClean) {
         scheduleReconnect()
       }
@@ -327,7 +360,7 @@ export const createWebSocketConnection = (roomId: string, onMessageReceived: (da
     const delay = getReconnectDelay()
     reconnectAttempts++
     console.info(`🔄 Reconnecting in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`)
-    
+
     reconnectTimer = setTimeout(() => {
       connect()
     }, delay)

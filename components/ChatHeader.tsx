@@ -24,6 +24,7 @@ type Props = {
   room: Room
   user: any
   onBackClick: () => void
+  onlineUsers?: string[]
 }
 
 // Helper to get member display name
@@ -45,20 +46,22 @@ const getMemberInitials = (member: Member): string => {
   return '?'
 }
 
-export default function ChatHeader({ room, user, onBackClick }: Props) {
+export default function ChatHeader({ room, user, onBackClick, onlineUsers = [] }: Props) {
   const [showInfo, setShowInfo] = useState(false)
   const [copied, setCopied] = useState(false)
 
   // Check if current user is the room owner
   const isOwner = user && room.creator_id && Number(user.id) === Number(room.creator_id)
 
-  // Check if a member is the current user (online)
+  // Check if a member is online based on WebSocket presence data
   const isMemberOnline = (member: Member): boolean => {
     const memberId = member.id || (typeof member === 'object' && 'user' in member ? (member as { user: { id: number } }).user?.id : null)
-    return memberId !== null && String(memberId) === String(user?.id)
+    if (!memberId) return false
+    // Check if member ID is in the online users list from WebSocket
+    return onlineUsers.includes(String(memberId))
   }
 
-  // Count online members (currently only the current user is "online")
+  // Count online members based on WebSocket presence
   const onlineCount = room.members?.filter(m => isMemberOnline(m)).length || 0
 
   const handleCopy = async () => {

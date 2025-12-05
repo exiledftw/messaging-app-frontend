@@ -7,11 +7,11 @@ type Props = {
 export default function Hero({ onStartClick }: Props) {
   return (
     <section className="min-h-[calc(100vh-64px)] relative overflow-hidden">
-      {/* Subtle gradient background */}
+      {/* Animated gradient background */}
       <div className="absolute inset-0 bg-black">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/[0.08] rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-600/[0.06] rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/[0.04] rounded-full blur-[80px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/[0.08] rounded-full blur-[120px] animate-float-slow" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-600/[0.06] rounded-full blur-[100px] animate-float-medium" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/[0.04] rounded-full blur-[80px] animate-pulse-slow" />
       </div>
 
       <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)] px-4 py-20">
@@ -101,6 +101,56 @@ export default function Hero({ onStartClick }: Props) {
           50% {
             background-position: 200% 0;
             opacity: 1;
+          }
+        }
+        
+        .animate-float-slow {
+          animation: float-slow 20s ease-in-out infinite;
+        }
+        
+        .animate-float-medium {
+          animation: float-medium 15s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 10s ease-in-out infinite;
+        }
+        
+        @keyframes float-slow {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+          }
+          25% {
+            transform: translate(30px, -20px) scale(1.05);
+          }
+          50% {
+            transform: translate(-20px, 30px) scale(0.95);
+          }
+          75% {
+            transform: translate(-30px, -10px) scale(1.02);
+          }
+        }
+        
+        @keyframes float-medium {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(-40px, 20px) scale(1.08);
+          }
+          66% {
+            transform: translate(30px, -30px) scale(0.92);
+          }
+        }
+        
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+          50% {
+            opacity: 0.6;
+            transform: translate(-50%, -50%) scale(1.15);
           }
         }
       `}</style>

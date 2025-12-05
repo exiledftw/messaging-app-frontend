@@ -32,7 +32,12 @@ export default function ChatMessages({ messages, user }: { messages: any[]; user
   const formatTime = (timestamp: string | undefined) => {
     if (!timestamp) return ""
     const date = new Date(timestamp)
-    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    // Format time in Pakistan Standard Time (PKT, UTC+5)
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Karachi"
+    })
   }
 
   return (

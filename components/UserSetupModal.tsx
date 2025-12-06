@@ -58,30 +58,30 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
           setError("Login failed. Please check your credentials.")
           return
         }
-  } else {
-        const registered = await authService.register(username.trim(), password, firstName.trim(), lastName.trim())
-      if (registered) {
-        const userData = {
-          id: registered.id,
-          username: registered.username,
-          password: password,
-          firstName: registered.first_name || firstName.trim(),
-          lastName: registered.last_name || lastName.trim(),
-          initials: getInitials(firstName, lastName),
-          joinedAt: new Date().toISOString(),
-        }
-        onUserSet(userData)
       } else {
-        // fallback
-        const userData = {
-          id: Date.now().toString(),
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          initials: getInitials(firstName, lastName),
-          joinedAt: new Date().toISOString(),
+        const registered = await authService.register(username.trim(), password, firstName.trim(), lastName.trim())
+        if (registered) {
+          const userData = {
+            id: registered.id,
+            username: registered.username,
+            password: password,
+            firstName: registered.first_name || firstName.trim(),
+            lastName: registered.last_name || lastName.trim(),
+            initials: getInitials(firstName, lastName),
+            joinedAt: new Date().toISOString(),
+          }
+          onUserSet(userData)
+        } else {
+          // fallback
+          const userData = {
+            id: Date.now().toString(),
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            initials: getInitials(firstName, lastName),
+            joinedAt: new Date().toISOString(),
+          }
+          onUserSet(userData)
         }
-        onUserSet(userData)
-      }
       }
     } catch (err: any) {
       console.error("User registration/login failed", err)
@@ -115,7 +115,7 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-500/20 rounded-full blur-3xl"></div>
-        
+
         {/* Close button */}
         <button
           type="button"
@@ -131,8 +131,21 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
         <div className="relative z-10 p-8 space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 rounded-2xl shadow-lg shadow-purple-500/40 mb-4">
-              <span className="text-white font-black text-2xl">Y</span>
+            <div className="relative inline-block mb-4">
+              <div className="absolute inset-0 bg-purple-500/50 rounded-full blur-xl scale-150" />
+              <svg viewBox="0 0 40 40" className="w-16 h-16 relative">
+                <defs>
+                  <linearGradient id="modalBubbleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#7c3aed" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M20 4C11.2 4 4 10.3 4 18c0 3.5 1.4 6.7 3.8 9.2L6 32l5.5-2.5c2.5 1 5.4 1.5 8.5 1.5 8.8 0 16-6.3 16-14S28.8 4 20 4z"
+                  fill="url(#modalBubbleGradient)"
+                />
+                <text x="20" y="20" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="14" fontWeight="700">Y</text>
+              </svg>
             </div>
             <h2 className="text-2xl font-bold text-white">{isLogin ? "Welcome back!" : "Join Yapper"}</h2>
             <p className="text-white/60 text-sm">{isLogin ? "Sign in to continue your conversations" : "Create your account to get started"}</p>
@@ -242,7 +255,7 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
           )}
         </div>
       </div>
-      
+
       <style jsx>{`
         @keyframes fade-in {
           from { opacity: 0; }

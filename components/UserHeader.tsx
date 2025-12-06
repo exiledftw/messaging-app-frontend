@@ -21,13 +21,31 @@ export default function UserHeader({ user, onLogout }: Props) {
     <header className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo/Brand */}
+          {/* Logo/Brand - Chat Bubble Style */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <span className="text-white font-black text-xl">Y</span>
+            <div className="relative">
+              <div className="absolute inset-0 bg-purple-500/40 rounded-full blur-lg scale-125" />
+              <svg viewBox="0 0 40 40" className="w-10 h-10 relative">
+                <defs>
+                  <linearGradient id="headerBubbleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#7c3aed" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M20 4C11.2 4 4 10.3 4 18c0 3.5 1.4 6.7 3.8 9.2L6 32l5.5-2.5c2.5 1 5.4 1.5 8.5 1.5 8.8 0 16-6.3 16-14S28.8 4 20 4z"
+                  fill="url(#headerBubbleGradient)"
+                />
+                <text x="20" y="20" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="14" fontWeight="700">Y</text>
+              </svg>
             </div>
             <div>
-              <h1 className="text-white font-bold text-xl tracking-tight">Yapper</h1>
+              <h1
+                className="text-white text-lg uppercase"
+                style={{ letterSpacing: '0.25em', fontWeight: 300, textShadow: '0 0 20px rgba(168, 85, 247, 0.4)' }}
+              >
+                Yapper
+              </h1>
               <p className="text-white/40 text-xs">Chat Dashboard</p>
             </div>
           </div>
@@ -54,7 +72,7 @@ export default function UserHeader({ user, onLogout }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            
+
             {/* Dropdown Menu */}
             {showMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-violet-950/95 backdrop-blur-xl rounded-xl shadow-2xl shadow-purple-500/20 border border-white/10 overflow-hidden animate-fade-in">
@@ -78,7 +96,7 @@ export default function UserHeader({ user, onLogout }: Props) {
           </div>
         </div>
       </div>
-      
+
       <style jsx>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(-10px); }

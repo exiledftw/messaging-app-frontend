@@ -3,52 +3,52 @@ export default function Navigation() {
     <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-2xl border-b border-white/[0.06]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-4">
-            {/* Beautiful Logo Icon */}
+          <div className="flex items-center gap-3">
+            {/* WhatsApp-style Chat Bubble Logo */}
             <div className="relative">
-              {/* Glow effect behind */}
-              <div className="absolute inset-0 bg-purple-500/40 rounded-2xl blur-xl" />
+              {/* Purple glow behind */}
+              <div className="absolute inset-0 bg-purple-500/50 rounded-full blur-lg scale-125" />
 
-              {/* Main icon */}
-              <div className="relative w-12 h-12 bg-gradient-to-br from-purple-400 via-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40">
-                {/* Chat bubble with Y */}
-                <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none">
-                  {/* Speech bubble */}
-                  <path
-                    d="M12 3C7 3 3 6.5 3 11c0 2.5 1.2 4.7 3 6.2V21l3.5-2.1c.8.2 1.6.3 2.5.3 5 0 9-3.5 9-8s-4-8-9-8z"
-                    stroke="rgba(255,255,255,0.7)"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {/* Y letter */}
-                  <text
-                    x="12"
-                    y="13"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill="white"
-                    fontSize="9"
-                    fontWeight="600"
-                    fontStyle="italic"
-                  >
-                    Y
-                  </text>
-                </svg>
-              </div>
+              {/* Chat bubble - WhatsApp style */}
+              <svg viewBox="0 0 40 40" className="w-10 h-10 relative">
+                <defs>
+                  <linearGradient id="bubbleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#7c3aed" />
+                  </linearGradient>
+                </defs>
+                {/* Filled speech bubble - WhatsApp shape */}
+                <path
+                  d="M20 4C11.2 4 4 10.3 4 18c0 3.5 1.4 6.7 3.8 9.2L6 32l5.5-2.5c2.5 1 5.4 1.5 8.5 1.5 8.8 0 16-6.3 16-14S28.8 4 20 4z"
+                  fill="url(#bubbleGradient)"
+                />
+                {/* Y letter inside */}
+                <text
+                  x="20"
+                  y="20"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="white"
+                  fontSize="14"
+                  fontWeight="700"
+                  fontFamily="system-ui, sans-serif"
+                >
+                  Y
+                </text>
+              </svg>
 
-              {/* Online indicator */}
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-[3px] border-black" />
+              {/* Online dot */}
+              <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black" />
             </div>
 
-            {/* Script/Cursive Style Text */}
+            {/* Modern Wide-Spaced Font */}
             <span
-              className="text-3xl text-white italic"
+              className="text-xl text-white font-medium uppercase"
               style={{
-                fontFamily: "'Brush Script MT', 'Segoe Script', 'Bradley Hand', cursive",
-                fontWeight: 400,
-                letterSpacing: '0.02em',
-                textShadow: '0 0 20px rgba(168, 85, 247, 0.6), 0 0 40px rgba(168, 85, 247, 0.4), 0 0 60px rgba(168, 85, 247, 0.2)'
+                letterSpacing: '0.35em',
+                fontFamily: "'Segoe UI', 'Helvetica Neue', system-ui, sans-serif",
+                fontWeight: 300,
+                textShadow: '0 0 30px rgba(168, 85, 247, 0.5)'
               }}
             >
               Yapper

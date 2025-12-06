@@ -24,6 +24,14 @@ export default function LandingPage({ onUserSet }: Props) {
     <div className="min-h-screen bg-black">
       <Navigation />
       <Hero onStartClick={() => setShowModal(true)} />
+
+      {/* Copyright Footer */}
+      <footer className="py-6 text-center">
+        <p className="text-white/20 text-xs font-light tracking-wider">
+          © {new Date().getFullYear()} Yapper Inc. All rights reserved.
+        </p>
+      </footer>
+
       {showModal && <UserSetupModal onClose={() => setShowModal(false)} onUserSet={onUserSet} />}
     </div>
   )

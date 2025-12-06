@@ -28,7 +28,7 @@ export default function LandingPage({ onUserSet }: Props) {
       {/* Copyright Footer */}
       <footer className="py-6 text-center">
         <p className="text-white/20 text-xs font-light tracking-wider">
-          © {new Date().getFullYear()} Yapper Inc. All rights reserved.
+          © {new Date().getFullYear()} Thunder Corporation, All rights reserved.
         </p>
       </footer>
 

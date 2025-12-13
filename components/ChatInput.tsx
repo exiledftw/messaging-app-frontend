@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, FormEvent, KeyboardEvent, ChangeEvent } from "react"
+import { useState, useRef, useEffect, FormEvent, KeyboardEvent, ChangeEvent } from "react"
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void
@@ -16,21 +16,51 @@ const emojiCategories = {
   "Animals": ["🐶", "🐱", "🐭", "🐰", "🦊", "🐻", "🐼", "🐨", "🦁", "🐸", "🦋"],
 }
 
+const COOLDOWN_SECONDS = 3
+
 export default function ChatInput({ onSendMessage }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const [isFocused, setIsFocused] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [activeCategory, setActiveCategory] = useState("Smileys")
+  const [cooldown, setCooldown] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const cooldownRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup cooldown timer on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) {
+        clearInterval(cooldownRef.current)
+      }
+    }
+  }, [])
+
+  const startCooldown = () => {
+    setCooldown(COOLDOWN_SECONDS)
+    cooldownRef.current = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) {
+          if (cooldownRef.current) {
+            clearInterval(cooldownRef.current)
+            cooldownRef.current = null
+          }
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>) => {
     e.preventDefault()
-    if (message.trim()) {
+    if (message.trim() && cooldown === 0) {
       onSendMessage(message)
       setMessage("")
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
       }
+      startCooldown()
     }
   }
 
@@ -53,6 +83,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
     setMessage(prev => prev + emoji)
     textareaRef.current?.focus()
   }
+
+  const isDisabled = !message.trim() || cooldown > 0
 
   return (
     <footer className="shrink-0 bg-black/60 backdrop-blur-2xl border-t border-white/[0.06] p-3 sm:p-4 relative z-10"
@@ -88,8 +120,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-all ${activeCategory === cat
-                    ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg shadow-purple-400/40'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-purple-100/60'
+                  ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg shadow-purple-400/40'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-purple-100/60'
                   }`}
               >
                 {cat}
@@ -115,17 +147,31 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
       )}
 
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+        {/* Cooldown indicator */}
+        {cooldown > 0 && (
+          <div className="flex items-center justify-end gap-2 mb-2 animate-fade-in">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full">
+              <svg className="w-3.5 h-3.5 text-orange-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-orange-400 text-xs font-medium">
+                Wait {cooldown}s
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className={`flex items-end gap-2 p-1.5 rounded-2xl transition-all duration-200 ${isFocused
-            ? 'bg-white/[0.08] ring-1 ring-purple-500/30'
-            : 'bg-white/[0.04]'
+          ? 'bg-white/[0.08] ring-1 ring-purple-500/30'
+          : 'bg-white/[0.04]'
           }`}>
           {/* Emoji button */}
           <button
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${showEmojiPicker
-                ? 'bg-purple-500/20 text-purple-400'
-                : 'text-white/30 hover:text-white/50 hover:bg-white/[0.06]'
+              ? 'bg-purple-500/20 text-purple-400'
+              : 'text-white/30 hover:text-white/50 hover:bg-white/[0.06]'
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +187,7 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
             onKeyPress={handleKeyPress}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Message..."
+            placeholder={cooldown > 0 ? "Please wait..." : "Message..."}
             rows={1}
             className="flex-1 px-2 py-2.5 bg-transparent text-white/90 placeholder-white/30 focus:outline-none resize-none max-h-[120px] text-[15px]"
             enterKeyHint="send"
@@ -150,15 +196,19 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
           {/* Send button */}
           <button
             type="submit"
-            disabled={!message.trim()}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${message.trim()
-                ? 'bg-gradient-to-br from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-95'
-                : 'bg-white/[0.04] text-white/20'
+            disabled={isDisabled}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${!isDisabled
+              ? 'bg-gradient-to-br from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 active:scale-95'
+              : 'bg-white/[0.04] text-white/20'
               }`}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-            </svg>
+            {cooldown > 0 ? (
+              <span className="text-xs font-bold text-white/40">{cooldown}</span>
+            ) : (
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+            )}
           </button>
         </div>
 
@@ -176,9 +226,17 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
         .animate-scale-up {
           animation: scale-up 0.2s ease-out;
         }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </footer>
   )
 }
+

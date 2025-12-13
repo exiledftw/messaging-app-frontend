@@ -6,6 +6,38 @@ const handleApiError = (error: any) => {
   throw error
 }
 
+// Generate or retrieve device fingerprint for login tracking
+const getDeviceId = (): string => {
+  if (typeof window === 'undefined') return ''
+
+  let deviceId = localStorage.getItem('deviceFingerprint')
+  if (!deviceId) {
+    // Generate a unique device fingerprint
+    const nav = window.navigator
+    const screen = window.screen
+    const fingerprint = [
+      nav.userAgent,
+      nav.language,
+      screen.width + 'x' + screen.height,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      nav.hardwareConcurrency || 'unknown',
+      (nav as any).deviceMemory || 'unknown',
+    ].join('|')
+
+    // Create a hash-like ID from the fingerprint
+    let hash = 0
+    for (let i = 0; i < fingerprint.length; i++) {
+      const char = fingerprint.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash
+    }
+    deviceId = 'DEV-' + Math.abs(hash).toString(36).toUpperCase() + '-' + Date.now().toString(36).toUpperCase()
+    localStorage.setItem('deviceFingerprint', deviceId)
+  }
+  return deviceId
+}
+
 export const authService = {
   register: async (username: string, password: string, firstName?: string, lastName?: string, email?: string) => {
     try {
@@ -28,10 +60,11 @@ export const authService = {
 
   login: async (username: string, password: string) => {
     try {
+      const device_id = getDeviceId()
       const response = await fetch(`${API_BASE_URL}/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, device_id }),
       })
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}))

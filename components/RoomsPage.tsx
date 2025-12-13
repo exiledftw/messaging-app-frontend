@@ -6,6 +6,7 @@ import RoomsList from "@/components/RoomsList"
 import CreateRoomModal from "@/components/CreateRoomModal"
 import JoinRoomModal from "@/components/JoinRoomModal"
 import FeedbackModal from "@/components/FeedbackModal"
+import EditProfileModal from "@/components/EditProfileModal"
 import { roomService, mapServerMessage } from "@/lib/api-service"
 
 const MAX_ROOMS_PER_USER = 3
@@ -16,12 +17,14 @@ type RoomsPageProps = {
   setRooms: (rooms: any[]) => void
   onRoomClick: (roomId: any) => void
   onLogout: () => void
+  onUserUpdate?: (updatedUser: any) => void
 }
 
-export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout }: RoomsPageProps) {
+export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout, onUserUpdate }: RoomsPageProps) {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false)
   const [roomStats, setRoomStats] = useState({ created_rooms_count: 0, max_rooms: MAX_ROOMS_PER_USER, can_create: true })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -194,7 +197,7 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
         </div>
       )}
 
-      <UserHeader user={user} onLogout={onLogout} />
+      <UserHeader user={user} onLogout={onLogout} onEditProfile={() => setShowEditProfileModal(true)} />
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -295,6 +298,17 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
       {showJoinModal && <JoinRoomModal onClose={() => setShowJoinModal(false)} onJoinRoom={handleJoinRoom} />}
 
       {showFeedbackModal && <FeedbackModal userId={user.id} onClose={() => setShowFeedbackModal(false)} />}
+
+      {showEditProfileModal && (
+        <EditProfileModal
+          user={user}
+          onClose={() => setShowEditProfileModal(false)}
+          onProfileUpdate={(updatedUser) => {
+            onUserUpdate?.(updatedUser)
+            setShowEditProfileModal(false)
+          }}
+        />
+      )}
     </div>
   )
 }

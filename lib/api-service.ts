@@ -67,6 +67,36 @@ export const feedbackService = {
   },
 }
 
+export const profileService = {
+  updateProfile: async (
+    userId: string | number,
+    data: {
+      first_name?: string
+      last_name?: string
+      email?: string
+      current_password?: string
+      new_password?: string
+    }
+  ) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/profile/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, ...data }),
+      })
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}))
+        const err: any = new Error(errBody.detail || "Failed to update profile")
+        err.status = response.status
+        throw err
+      }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
+}
+
 export const roomService = {
   createRoom: async (roomName: string, userId: string) => {
     try {

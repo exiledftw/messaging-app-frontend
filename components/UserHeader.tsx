@@ -7,14 +7,16 @@ type User = {
   lastName: string
   initials: string
   username?: string
+  email?: string
 }
 
 type Props = {
   user: User
   onLogout: () => void
+  onEditProfile?: () => void
 }
 
-export default function UserHeader({ user, onLogout }: Props) {
+export default function UserHeader({ user, onLogout, onEditProfile }: Props) {
   const [showMenu, setShowMenu] = useState(false)
 
   return (
@@ -81,6 +83,21 @@ export default function UserHeader({ user, onLogout }: Props) {
                   <p className="text-white/50 text-sm">@{user.username || 'user'}</p>
                 </div>
                 <div className="p-2">
+                  {/* Edit Profile Button */}
+                  <button
+                    onClick={() => {
+                      setShowMenu(false)
+                      onEditProfile?.()
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Profile
+                  </button>
+
+                  {/* Sign Out Button */}
                   <button
                     onClick={onLogout}
                     className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -109,3 +126,4 @@ export default function UserHeader({ user, onLogout }: Props) {
     </header>
   )
 }
+

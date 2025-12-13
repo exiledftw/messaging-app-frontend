@@ -7,12 +7,12 @@ const handleApiError = (error: any) => {
 }
 
 export const authService = {
-  register: async (username: string, password: string, firstName?: string, lastName?: string) => {
+  register: async (username: string, password: string, firstName?: string, lastName?: string, email?: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, first_name: firstName, last_name: lastName }),
+        body: JSON.stringify({ username, password, first_name: firstName, last_name: lastName, email }),
       })
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}))
@@ -36,6 +36,27 @@ export const authService = {
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}))
         const err: any = new Error(errBody.detail || "Login failed")
+        err.status = response.status
+        throw err
+      }
+      return await response.json()
+    } catch (error) {
+      handleApiError(error)
+    }
+  },
+}
+
+export const feedbackService = {
+  submit: async (userId: string | number, content: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/feedback/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, content }),
+      })
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}))
+        const err: any = new Error(errBody.detail || "Failed to submit feedback")
         err.status = response.status
         throw err
       }

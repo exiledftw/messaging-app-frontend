@@ -5,6 +5,7 @@ import UserHeader from "@/components/UserHeader"
 import RoomsList from "@/components/RoomsList"
 import CreateRoomModal from "@/components/CreateRoomModal"
 import JoinRoomModal from "@/components/JoinRoomModal"
+import FeedbackModal from "@/components/FeedbackModal"
 import { roomService, mapServerMessage } from "@/lib/api-service"
 
 const MAX_ROOMS_PER_USER = 3
@@ -20,6 +21,7 @@ type RoomsPageProps = {
 export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout }: RoomsPageProps) {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [roomStats, setRoomStats] = useState({ created_rooms_count: 0, max_rooms: MAX_ROOMS_PER_USER, can_create: true })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -208,8 +210,8 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
                     onClick={() => canCreate ? setShowCreateModal(true) : alert(`You've reached the maximum of ${MAX_ROOMS_PER_USER} rooms. Delete a room to create a new one.`)}
                     disabled={!canCreate}
                     className={`w-full group flex items-center justify-center gap-2 font-bold py-4 px-4 rounded-xl transition-all duration-200 ${canCreate
-                        ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-violet-600 text-white hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02]'
-                        : 'bg-white/10 text-white/50 cursor-not-allowed'
+                      ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-violet-600 text-white hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02]'
+                      : 'bg-white/10 text-white/50 cursor-not-allowed'
                       }`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,6 +263,17 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
                   </div>
                 </div>
               </div>
+
+              {/* Feedback button */}
+              <button
+                onClick={() => setShowFeedbackModal(true)}
+                className="w-full flex items-center justify-center gap-2 bg-white/5 backdrop-blur-xl text-white/70 font-medium py-3 px-4 rounded-xl hover:bg-white/10 hover:text-white transition-all duration-200 border border-white/10"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                Send Feedback
+              </button>
             </div>
           </div>
 
@@ -280,6 +293,8 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
       {showCreateModal && <CreateRoomModal onClose={() => setShowCreateModal(false)} onCreateRoom={handleCreateRoom} />}
 
       {showJoinModal && <JoinRoomModal onClose={() => setShowJoinModal(false)} onJoinRoom={handleJoinRoom} />}
+
+      {showFeedbackModal && <FeedbackModal userId={user.id} onClose={() => setShowFeedbackModal(false)} />}
     </div>
   )
 }

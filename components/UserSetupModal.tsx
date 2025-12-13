@@ -20,6 +20,7 @@ type Props = {
 export default function UserSetupModal({ onClose, onUserSet }: Props) {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
+  const [email, setEmail] = useState("")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -29,12 +30,31 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
     return `${first.charAt(0).toUpperCase()}${last.charAt(0).toUpperCase()}`
   }
 
+  // Email validation - must contain @ and end with valid domain
+  const validateEmail = (email: string): boolean => {
+    if (!email) return false
+    const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|edu|gov|io|co|info|biz|me|us|uk|ca|au|in|pk)$/i
+    return pattern.test(email)
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (!username.trim() || !password) {
       setError("Please enter a username and password")
       return
+    }
+
+    // Validate email for registration
+    if (!isLogin) {
+      if (!email.trim()) {
+        setError("Email is required")
+        return
+      }
+      if (!validateEmail(email.trim())) {
+        setError("Please enter a valid email address (e.g., user@example.com)")
+        return
+      }
     }
 
     // Try login or register depending on the modal mode. If register fails with username taken, prompt to login.
@@ -59,7 +79,7 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
           return
         }
       } else {
-        const registered = await authService.register(username.trim(), password, firstName.trim(), lastName.trim())
+        const registered = await authService.register(username.trim(), password, firstName.trim(), lastName.trim(), email.trim())
         if (registered) {
           const userData = {
             id: registered.id,
@@ -177,28 +197,41 @@ export default function UserSetupModal({ onClose, onUserSet }: Props) {
             </div>
 
             {!isLogin && (
-              <div className="grid grid-cols-2 gap-3">
+              <>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">First Name</label>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Email <span className="text-pink-400">*</span></label>
                   <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="John"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="john@example.com"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+                    autoComplete="email"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">Last Name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Doe"
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">First Name</label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">Last Name</label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+                    />
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             {error && (

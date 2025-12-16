@@ -65,10 +65,7 @@ export default function UserHeader({ user, onLogout, onEditProfile }: Props) {
                 <p className="text-white font-semibold text-sm">
                   {user.firstName} {user.lastName}
                 </p>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                  <p className="text-xs text-green-400">Online</p>
-                </div>
+                <p className="text-white/40 text-xs">@{user.username || 'user'}</p>
               </div>
               <svg className={`w-4 h-4 text-white/50 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

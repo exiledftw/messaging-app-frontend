@@ -107,8 +107,8 @@ export default function Hero({ onStartClick }: Props) {
 
           {/* Stats */}
           <div className="pt-16 flex items-center justify-center gap-12 md:gap-16">
-            <div className="text-center">
-              <p className="text-3xl font-medium text-white">∞</p>
+          <div className="text-center">
+              <p className="text-3xl font-medium text-white">💬</p>
               <p className="text-sm text-white/30 mt-1">Rooms</p>
             </div>
             <div className="w-px h-10 bg-white/10"></div>

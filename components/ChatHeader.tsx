@@ -228,19 +228,16 @@ export default function ChatHeader({ room, user, onBackClick, onlineUsers = [] }
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/80 to-violet-600/80 flex items-center justify-center">
                           <span className="text-[10px] font-semibold text-white">{getMemberInitials(member)}</span>
                         </div>
-                        <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-black ${isOnline ? 'bg-green-400' : 'bg-white/20'
-                          }`} />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white/80 font-medium truncate flex items-center gap-1.5">
                           {getMemberName(member)}
                           {memberIsOwner && <span className="text-[10px] text-purple-400">Owner</span>}
-                          {isOnline && String(memberId) === String(user?.id) && (
+                          {String(memberId) === String(user?.id) && (
                             <span className="text-[10px] text-white/30">You</span>
                           )}
                         </p>
-                        <p className="text-[10px] text-white/30">{isOnline ? 'Online' : 'Offline'}</p>
                       </div>
 
                       {isOwner && !memberIsOwner && memberId && (

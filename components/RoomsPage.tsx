@@ -260,10 +260,6 @@ export default function RoomsPage({ user, rooms, setRooms, onRoomClick, onLogout
                     <span className="text-white/50 text-sm">Rooms Joined</span>
                     <span className="text-white font-bold">{rooms.length - createdRoomsCount}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/50 text-sm">Status</span>
-                    <span className="text-green-400 font-medium text-sm">Online</span>
-                  </div>
                 </div>
               </div>
 

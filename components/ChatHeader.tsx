@@ -145,9 +145,8 @@ export default function ChatHeader({ room, user, onBackClick, onlineUsers = [] }
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full ${onlineCount > 0 ? 'bg-green-400' : 'bg-white/20'}`} />
                     <span className="text-xs text-white/40">
-                      {onlineCount} online · {room.members?.length || 0} members
+                      {room.members?.length || 0} members
                     </span>
                   </div>
                 </div>

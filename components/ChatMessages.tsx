@@ -31,11 +31,44 @@ export default function ChatMessages({ messages, user }: { messages: any[]; user
   const formatTime = (timestamp: string | undefined) => {
     if (!timestamp) return ""
     const date = new Date(timestamp)
-    return date.toLocaleTimeString("en-US", {
+    const now = new Date()
+
+    // Get dates in Asia/Karachi timezone for comparison
+    const options: Intl.DateTimeFormatOptions = { timeZone: "Asia/Karachi" }
+    const dateStr = date.toLocaleDateString("en-US", options)
+    const nowStr = now.toLocaleDateString("en-US", options)
+
+    // Parse the date strings to compare
+    const [msgMonth, msgDay, msgYear] = dateStr.split("/").map(Number)
+    const [nowMonth, nowDay, nowYear] = nowStr.split("/").map(Number)
+
+    // Calculate days difference
+    const msgDate = new Date(msgYear, msgMonth - 1, msgDay)
+    const todayDate = new Date(nowYear, nowMonth - 1, nowDay)
+    const diffTime = todayDate.getTime() - msgDate.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+    // Format time
+    const time = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       timeZone: "Asia/Karachi"
     })
+
+    // Determine date label
+    let dateLabel = ""
+    if (diffDays === 0) {
+      dateLabel = "Today"
+    } else if (diffDays === 1) {
+      dateLabel = "Yesterday"
+    } else {
+      // Format as mm/dd/yyyy
+      const month = String(msgMonth).padStart(2, "0")
+      const day = String(msgDay).padStart(2, "0")
+      dateLabel = `${month}/${day}/${msgYear}`
+    }
+
+    return `${time} • ${dateLabel}`
   }
 
   return (

@@ -18,14 +18,22 @@ const emojiCategories = {
 
 const COOLDOWN_SECONDS = 3
 
+const COOLDOWN_MESSAGES = [
+  "Hold your horses!",
+  "Wait a little my bro!",
+  "Take a chill, will you?",
+  "Calm down my man.",
+  "You're gonna break the key!"
+]
+
 export default function ChatInput({ onSendMessage }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const [isFocused, setIsFocused] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [activeCategory, setActiveCategory] = useState("Smileys")
   const [cooldown, setCooldown] = useState(0)
-  const [spamAttempts, setSpamAttempts] = useState(0)
   const [showCooldownWarning, setShowCooldownWarning] = useState(false)
+  const [cooldownMessage, setCooldownMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const cooldownRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -40,7 +48,6 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
 
   const startCooldown = () => {
     setCooldown(COOLDOWN_SECONDS)
-    setSpamAttempts(0)
     setShowCooldownWarning(false)
     cooldownRef.current = setInterval(() => {
       setCooldown(prev => {
@@ -49,7 +56,6 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
             clearInterval(cooldownRef.current)
             cooldownRef.current = null
           }
-          setSpamAttempts(0)
           setShowCooldownWarning(false)
           return 0
         }
@@ -61,7 +67,9 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>) => {
     e.preventDefault()
     if (cooldown > 0) {
-      // User trying to send during cooldown - show warning
+      // User trying to send during cooldown - show random warning
+      const randomMessage = COOLDOWN_MESSAGES[Math.floor(Math.random() * COOLDOWN_MESSAGES.length)]
+      setCooldownMessage(randomMessage)
       setShowCooldownWarning(true)
       return
     }
@@ -166,7 +174,7 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-orange-400 text-xs font-medium">
-                Hold your horses!
+                {cooldownMessage}
               </span>
             </div>
           </div>

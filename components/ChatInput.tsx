@@ -24,6 +24,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [activeCategory, setActiveCategory] = useState("Smileys")
   const [cooldown, setCooldown] = useState(0)
+  const [spamAttempts, setSpamAttempts] = useState(0)
+  const [showCooldownWarning, setShowCooldownWarning] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const cooldownRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -38,6 +40,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
 
   const startCooldown = () => {
     setCooldown(COOLDOWN_SECONDS)
+    setSpamAttempts(0)
+    setShowCooldownWarning(false)
     cooldownRef.current = setInterval(() => {
       setCooldown(prev => {
         if (prev <= 1) {
@@ -45,6 +49,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
             clearInterval(cooldownRef.current)
             cooldownRef.current = null
           }
+          setSpamAttempts(0)
+          setShowCooldownWarning(false)
           return 0
         }
         return prev - 1
@@ -54,7 +60,16 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>) => {
     e.preventDefault()
-    if (message.trim() && cooldown === 0) {
+    if (cooldown > 0) {
+      // User trying to send during cooldown
+      const newAttempts = spamAttempts + 1
+      setSpamAttempts(newAttempts)
+      if (newAttempts >= 3) {
+        setShowCooldownWarning(true)
+      }
+      return
+    }
+    if (message.trim()) {
       onSendMessage(message)
       setMessage("")
       if (textareaRef.current) {
@@ -147,8 +162,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
       )}
 
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-        {/* Cooldown indicator */}
-        {cooldown > 0 && (
+        {/* Cooldown indicator - only shows after 3+ failed attempts */}
+        {showCooldownWarning && cooldown > 0 && (
           <div className="flex items-center justify-end gap-2 mb-2 animate-fade-in">
             <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full">
               <svg className="w-3.5 h-3.5 text-orange-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">

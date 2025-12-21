@@ -61,12 +61,8 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>) => {
     e.preventDefault()
     if (cooldown > 0) {
-      // User trying to send during cooldown
-      const newAttempts = spamAttempts + 1
-      setSpamAttempts(newAttempts)
-      if (newAttempts >= 3) {
-        setShowCooldownWarning(true)
-      }
+      // User trying to send during cooldown - show warning
+      setShowCooldownWarning(true)
       return
     }
     if (message.trim()) {
@@ -170,7 +166,7 @@ export default function ChatInput({ onSendMessage }: ChatInputProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-orange-400 text-xs font-medium">
-                Wait {cooldown}s
+                Hold your horses!
               </span>
             </div>
           </div>
